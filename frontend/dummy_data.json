@@ -1,0 +1,164 @@
+{
+    "classes": [
+        {
+            "credits": 3,
+            "faculty": [
+                "Doe, John"
+            ],
+            "is_lab": false,
+            "is_open": true,
+            "location": "TEST 101",
+            "name": "INTRODUCTION TO UI TESTING",
+            "number": 101,
+            "open_seats": 15,
+            "section": "A",
+            "semester": "2024_Fall",
+            "subject": "TEST",
+            "times": [
+                {
+                    "day": "M",
+                    "end_time": "10:50:00",
+                    "start_time": "10:00:00"
+                },
+                {
+                    "day": "W",
+                    "end_time": "10:50:00",
+                    "start_time": "10:00:00"
+                },
+                {
+                    "day": "F",
+                    "end_time": "10:50:00",
+                    "start_time": "10:00:00"
+                }
+            ],
+            "total_seats": 30
+        },
+        {
+            "credits": 0,
+            "faculty": [
+                "Doe, Jane"
+            ],
+            "is_lab": true,
+            "is_open": true,
+            "location": "LAB 202",
+            "name": "TESTING LABORATORY",
+            "number": 101,
+            "open_seats": 5,
+            "section": "L",
+            "semester": "2024_Fall",
+            "subject": "TEST",
+            "times": [
+                {
+                    "day": "T",
+                    "end_time": "16:00:00",
+                    "start_time": "14:00:00"
+                }
+            ],
+            "total_seats": 20
+        },
+        {
+            "credits": 3,
+            "faculty": [
+                "Smith, Alice",
+                "Jones, Bob"
+            ],
+            "is_lab": false,
+            "is_open": false,
+            "location": "HALL 300",
+            "name": "ADVANCED DUMMY DATA",
+            "number": 400,
+            "open_seats": 0,
+            "section": "A",
+            "semester": "2024_Spring",
+            "subject": "DUMM",
+            "times": [],
+            "total_seats": 25
+        },
+        {
+            "credits": 4,
+            "faculty": [
+                "Turing, Alan"
+            ],
+            "is_lab": false,
+            "is_open": true,
+            "location": "SCI 101",
+            "name": "DATA STRUCTURES",
+            "number": 201,
+            "open_seats": 10,
+            "section": "A",
+            "semester": "2024_Fall",
+            "subject": "CS",
+            "times": [
+                {
+                    "day": "T",
+                    "end_time": "09:15:00",
+                    "start_time": "08:00:00"
+                },
+                {
+                    "day": "R",
+                    "end_time": "09:15:00",
+                    "start_time": "08:00:00"
+                }
+            ],
+            "total_seats": 40
+        },
+        {
+            "credits": 3,
+            "faculty": [
+                "Lovelace, Ada"
+            ],
+            "is_lab": false,
+            "is_open": true,
+            "location": "ENG 205",
+            "name": "ALGORITHMS",
+            "number": 301,
+            "open_seats": 5,
+            "section": "B",
+            "semester": "2024_Fall",
+            "subject": "CS",
+            "times": [
+                {
+                    "day": "T",
+                    "end_time": "10:45:00",
+                    "start_time": "09:30:00"
+                },
+                {
+                    "day": "R",
+                    "end_time": "10:45:00",
+                    "start_time": "09:30:00"
+                }
+            ],
+            "total_seats": 35
+        },
+        {
+            "credits": 3,
+            "faculty": [
+                "Hopper, Grace"
+            ],
+            "is_lab": false,
+            "is_open": false,
+            "location": "MAIN 303",
+            "name": "OPERATING SYSTEMS",
+            "number": 401,
+            "open_seats": 0,
+            "section": "A",
+            "semester": "2024_Fall",
+            "subject": "CS",
+            "times": [
+                {
+                    "day": "T",
+                    "end_time": "12:15:00",
+                    "start_time": "11:00:00"
+                },
+                {
+                    "day": "R",
+                    "end_time": "12:15:00",
+                    "start_time": "11:00:00"
+                }
+            ],
+            "total_seats": 30
+        }
+    ],
+    "date": "2024-05-01",
+    "time": "12:00:00"
+}

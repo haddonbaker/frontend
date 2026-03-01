@@ -1,0 +1,209 @@
+import React, { useState } from 'react';
+import { Info } from 'lucide-react';
+import CourseDetailsModal from './CourseDetailsModal';
+
+function CandidateSchedule({ courses = [], onRemoveCourse = () => {}, openModal }) {
+  const [viewCourse, setViewCourse] = useState(null);
+
+  const panelStyle = {
+    maxWidth: '800px',
+    width: '100%',
+    margin: '0 auto',
+    padding: '1.25rem',
+    background: '#FFFFFF',
+    border: '1px solid #E5E7EB',
+    borderRadius: '12px',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+  };
+
+  const headingStyle = {
+    color: '#1976D2',
+    fontSize: '1.25rem',
+    marginTop: 0,
+    marginBottom: '0.75rem',
+  };
+
+  const courseContainerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    marginBottom: '1rem',
+  };
+
+  const courseCardStyle = {
+    padding: '0.75rem 1rem',
+    border: '1px solid #E5E7EB',
+    borderRadius: '8px',
+    background: '#F0F7FF',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '0.75rem',
+  };
+
+  const courseInfoStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    flex: 1,
+    flexWrap: 'wrap',
+  };
+
+  const courseTitleStyle = {
+    fontSize: '1rem',
+    fontWeight: '600',
+    color: '#1F2937',
+    margin: 0,
+    minWidth: '80px',
+  };
+
+  const compactDetailStyle = {
+    fontSize: '0.85rem',
+    color: '#555',
+    display: 'flex',
+    gap: '1rem',
+    alignItems: 'center',
+  };
+
+  const removeButtonStyle = {
+    padding: '0.4rem 0.8rem',
+    background: '#EF5350',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    whiteSpace: 'nowrap',
+    height: 'fit-content',
+  };
+
+  const infoButtonStyle = {
+    background: 'transparent',
+    border: 'none',
+    color: '#6B7280',
+    cursor: 'pointer',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+  };
+
+  const actionButtonsStyle = {
+    display: 'flex',
+    gap: '0.75rem',
+    marginTop: '1rem',
+  };
+
+  const buttonStyle = {
+    padding: '0.6rem 1.2rem',
+    background: '#1976D2',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '0.95rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s, box-shadow 0.2s',
+  };
+
+  const emptyStateStyle = {
+    color: '#6B7280',
+    fontSize: '0.95rem',
+    margin: 0,
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '';
+    const [hours, minutes] = timeStr.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const formatDays = (times) => {
+    if (!times || times.length === 0) return 'TBA';
+    const dayMap = { M: 'Mon', T: 'Tue', W: 'Wed', R: 'Thu', F: 'Fri', S: 'Sat', U: 'Sun' };
+    return times.map(t => dayMap[t.day] || t.day).join(', ');
+  };
+
+  const formatTimeRange = (times) => {
+    if (!times || times.length === 0) return 'TBA';
+    const firstTime = times[0];
+    return `${formatTime(firstTime.start_time)} - ${formatTime(firstTime.end_time)}`;
+  };
+
+  const totalCredits = courses.reduce((sum, course) => sum + (course.credits || 0), 0);
+
+  if (courses.length === 0) {
+    return (
+      <div style={panelStyle}>
+        <h2 style={headingStyle}>Candidate Schedule</h2>
+        <p style={emptyStateStyle}>Courses added from search results will appear here.</p>
+        <div style={actionButtonsStyle}>
+          <button 
+            onClick={openModal}
+            style={buttonStyle}
+            onMouseEnter={(e) => e.target.style.background = '#1565C0'}
+            onMouseLeave={(e) => e.target.style.background = '#1976D2'}
+          >
+            View Weekly Schedule
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={panelStyle}>
+      <h2 style={headingStyle}>Candidate Schedule ({courses.length} courses, {totalCredits} credits)</h2>
+      <div style={courseContainerStyle}>
+        {courses.map((course, index) => (
+          <div key={index} style={courseCardStyle}>
+            <div style={courseInfoStyle}>
+              <div style={courseTitleStyle}>
+                {course.subject} {course.number}
+              </div>
+              <div style={compactDetailStyle}>
+                <span>{formatDays(course.times)} {formatTimeRange(course.times)}</span>
+                <span>{course.credits} cr</span>
+              </div>
+            </div>
+            
+            <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+              <button 
+                style={infoButtonStyle} 
+                onClick={() => setViewCourse(course)}
+                title="View Details"
+              >
+                <Info size={18} />
+              </button>
+            <button
+              style={removeButtonStyle}
+              onClick={() => onRemoveCourse(index)}
+              onMouseEnter={(e) => e.target.style.background = '#EF4444'}
+              onMouseLeave={(e) => e.target.style.background = '#EF5350'}
+            >
+              Remove
+            </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={actionButtonsStyle}>
+        <button 
+          onClick={openModal}
+          style={buttonStyle}
+          onMouseEnter={(e) => e.target.style.background = '#1565C0'}
+          onMouseLeave={(e) => e.target.style.background = '#1976D2'}
+        >
+          View Weekly Schedule
+        </button>
+      </div>
+      {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} />}
+    </div>
+  );
+}
+
+export default CandidateSchedule;
