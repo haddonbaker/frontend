@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import FilterModal from "./FilterModal";
 
-function SearchPanel() {
+function SearchPanel({ onSearch = () => {} }) {
   const [searchInput, setSearchInput] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isClosingFilters, setIsClosingFilters] = useState(false);
   const [filtersApplied, setFiltersApplied] = useState(false);
   const [hoveredButton, setHoveredButton] = useState(null);
+  const [activeFilters, setActiveFilters] = useState({});
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const inputRef = useRef(null);
   const filterButtonRef = useRef(null);
@@ -21,7 +22,7 @@ function SearchPanel() {
 
   const handleSearch = () => {
     if (isSearchDisabled) return;
-    console.log("Searching for:", searchInput);
+    onSearch(searchInput, activeFilters);
   };
 
   const handleKeyDown = (e) => {
@@ -43,8 +44,9 @@ function SearchPanel() {
     }
   };
 
-  const handleApplyFilters = () => {
-    console.log("Filters applied");
+  const handleApplyFilters = (filters) => {
+    setActiveFilters(filters);
+    onSearch(searchInput, filters); // Search immediately when filters are applied
     setFiltersApplied(true);
     setIsClosingFilters(true);
     setTimeout(() => {
@@ -62,8 +64,10 @@ function SearchPanel() {
   };
 
   const handleResetFilters = () => {
-    console.log("Filters reset");
+    setActiveFilters({});
     setFiltersApplied(false);
+    // Optionally, you might want to trigger a new search with reset filters
+    onSearch(searchInput, {});
   };
 
   return (
