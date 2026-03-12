@@ -99,25 +99,36 @@ function SearchResults({ results = [], onAddCourse = () => {} }) {
     margin: 0,
   };
 
-  const formatTime = (timeStr) => {
-    if (!timeStr) return '';
-    const [hours, minutes] = timeStr.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+  const formatTime = (hour, minute) => {
+    if (hour == null || minute == null) return '';
+    const h = parseInt(hour, 10);
+    const m = parseInt(minute, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const displayHour = h % 12 || 12;
+    const displayMinutes = m < 10 ? `0${m}` : m;
+    return `${displayHour}:${displayMinutes} ${ampm}`;
   };
 
   const formatDays = (times) => {
     if (!times || times.length === 0) return 'TBA';
-    const dayMap = { M: 'Mon', T: 'Tue', W: 'Wed', R: 'Thu', F: 'Fri', S: 'Sat', U: 'Sun' };
-    return times.map(t => dayMap[t.day] || t.day).join(', ');
+    const dayMap = { Monday: 'M', Tuesday: 'T', Wednesday: 'W', Thursday: 'R', Friday: 'F', Saturday: 'S', Sunday: 'U' };
+    const uniqueDays = [...new Set(times.map(t => t.day))];
+    return uniqueDays.map(d => dayMap[d] || d).join('');
   };
 
   const formatTimeRange = (times) => {
     if (!times || times.length === 0) return 'TBA';
     const firstTime = times[0];
-    return `${formatTime(firstTime.start_time)} - ${formatTime(firstTime.end_time)}`;
+    const startHour = firstTime.hour;
+    const startMinute = firstTime.minute;
+
+    const startTimeInMinutes = startHour * 60 + startMinute;
+    const endTimeInMinutes = startTimeInMinutes + firstTime.minutesLong;
+
+    const endHour = Math.floor(endTimeInMinutes / 60) % 24;
+    const endMinute = endTimeInMinutes % 60;
+
+    return `${formatTime(startHour, startMinute)} - ${formatTime(endHour, endMinute)}`;
   };
 
   if (results.length === 0) {
@@ -137,14 +148,14 @@ function SearchResults({ results = [], onAddCourse = () => {} }) {
           <div key={index} style={courseCardStyle}>
             <div style={courseInfoStyle}>
               <div style={courseTitleStyle}>
-                {course.subject} {course.number}
+                {course.department} {course.code}
               </div>
               
               <div style={compactDetailStyle}>
-                <span>{formatDays(course.times)} {formatTimeRange(course.times)}</span>
+                <span>{formatDays(course.meetingTimes)} {formatTimeRange(course.meetingTimes)}</span>
                 <span>{course.credits} cr</span>
-                <span style={statusStyle(course.is_open)}>
-                  {course.is_open ? 'Open' : 'Closed'}
+                <span style={statusStyle(course.openSeats > 0)}>
+                  {course.openSeats > 0 ? 'Open' : 'Closed'}
                 </span>
               </div>
             </div>

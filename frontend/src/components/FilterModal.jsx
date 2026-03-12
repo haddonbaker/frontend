@@ -206,7 +206,12 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
       <div style={styles.buttonGroup}>
         <button
           style={styles.applyButton}
-          onClick={onApply}
+          onClick={() => onApply({
+            days: selectedDays,
+            department: selectedDepartment,
+            credits: selectedCredits,
+            // TODO: Add time range when implemented
+          })}
           onMouseEnter={(e) => e.target.style.background = '#1565C0'}
           onMouseLeave={(e) => e.target.style.background = '#1976D2'}
         >
