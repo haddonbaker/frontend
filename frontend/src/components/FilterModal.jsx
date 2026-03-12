@@ -5,19 +5,63 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState('All');
   const [selectedCredits, setSelectedCredits] = useState('Any');
+  const [selectedProfessor, setSelectedProfessor] = useState('All');
+  const [selectedYears, setSelectedYears] = useState([]);
+  
+  // Options loaded from API
+  const [departments, setDepartments] = useState(['All']);
+  const [credits, setCredits] = useState(['Any']);
+  const [professors, setProfessors] = useState(['All']);
+  const [years, setYears] = useState([]);
+  
   const [daysDropdownOpen, setDaysDropdownOpen] = useState(false);
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const [creditsDropdownOpen, setCreditsDropdownOpen] = useState(false);
+  const [profDropdownOpen, setProfDropdownOpen] = useState(false);
+  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [hoveredClose, setHoveredClose] = useState(false);
   const [closeTooltipPos, setCloseTooltipPos] = useState({ x: 0, y: 0 });
   const closeButtonRef = useRef(null);
   const deptRef = useRef(null);
   const creditsRef = useRef(null);
   const daysRef = useRef(null);
+  const profRef = useRef(null);
+  const yearsRef = useRef(null);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const departments = ['All', 'Computer Science', 'Mathematics', 'Biology'];
-  const credits = ['Any', '1–2', '3–4', '5+'];
+  const BASEURL = 'http://localhost:7000'
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        const [deptRes, credRes, profRes, yearRes] = await Promise.all([
+          fetch(`${BASEURL}/departments`),
+          fetch(`${BASEURL}/credits`),
+          fetch(`${BASEURL}/professors`),
+          fetch(`${BASEURL}/years`)
+        ]);
+
+        if (deptRes.ok) {
+          const data = await deptRes.json();
+          setDepartments(['All', ...data]);
+        }
+        if (credRes.ok) {
+          const data = await credRes.json();
+          setCredits(['Any', ...data]);
+        }
+        if (profRes.ok) {
+          const data = await profRes.json();
+          setProfessors(['All', ...data]);
+        }
+        if (yearRes.ok) {
+          const data = await yearRes.json();
+          setYears(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch filter options:", error);
+      }
+    };
+    fetchFilterOptions();
+  }, []);
 
   const toggleDay = (day) => {
     setSelectedDays((prev) =>
@@ -25,9 +69,20 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
     );
   };
 
+  const toggleYear = (year) => {
+    setSelectedYears((prev) =>
+      prev.includes(year) ? prev.filter((y) => y !== year) : [...prev, year]
+    );
+  };
+
   const toggleDepartment = (dept) => {
     setSelectedDepartment(dept);
     setDeptDropdownOpen(false);
+  };
+
+  const toggleProfessor = (prof) => {
+    setSelectedProfessor(prof);
+    setProfDropdownOpen(false);
   };
 
   const toggleCredits = (credit) => {
@@ -52,6 +107,12 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
     return `${selectedDays.length} days selected`;
   };
 
+  const getSelectedYearsDisplay = () => {
+    if (selectedYears.length === 0) return 'Select years...';
+    if (selectedYears.length === years.length) return 'All years';
+    return selectedYears.join(', ');
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (deptDropdownOpen && deptRef.current && !deptRef.current.contains(event.target)) {
@@ -63,10 +124,16 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
       if (daysDropdownOpen && daysRef.current && !daysRef.current.contains(event.target)) {
         setDaysDropdownOpen(false);
       }
+      if (profDropdownOpen && profRef.current && !profRef.current.contains(event.target)) {
+        setProfDropdownOpen(false);
+      }
+      if (yearDropdownOpen && yearsRef.current && !yearsRef.current.contains(event.target)) {
+        setYearDropdownOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [deptDropdownOpen, creditsDropdownOpen, daysDropdownOpen]);
+  }, [deptDropdownOpen, creditsDropdownOpen, daysDropdownOpen, profDropdownOpen, yearDropdownOpen]);
 
   return (
     <div style={{
@@ -76,9 +143,12 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
         : 'filterSlideDown 0.3s cubic-bezier(0, 0, 0.2, 1) forwards',
     }}>
       <div style={styles.title}>Filter by...</div>
-      <div style={styles.filterRow}>
-        <label style={styles.label}>Department</label>
-        <div style={styles.multiSelectWrapper} ref={deptRef}>
+      
+      {/* Row 1: Department and Professor */}
+      <div style={styles.row}>
+        <div style={styles.filterColumn}>
+          <label style={styles.label}>Department</label>
+          <div style={styles.multiSelectWrapper} ref={deptRef}>
           <button
             onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
             style={{
@@ -112,13 +182,56 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
                 </button>
               ))}
             </div>
-          )}
+            )}
+          </div>
+        </div>
+
+        <div style={styles.filterColumn}>
+          <label style={styles.label}>Professor</label>
+          <div style={styles.multiSelectWrapper} ref={profRef}>
+            <button
+              onClick={() => setProfDropdownOpen(!profDropdownOpen)}
+              style={{
+                ...styles.multiSelectButton,
+                borderColor: profDropdownOpen ? '#1976D2' : '#E5E7EB',
+              }}
+            >
+              <span>{selectedProfessor}</span>
+              <ChevronDown
+                size={18}
+                style={{
+                  transform: profDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s',
+                }}
+              />
+            </button>
+
+            {profDropdownOpen && (
+              <div style={styles.daysDropdown}>
+                {professors.map((prof) => (
+                  <button
+                    key={prof}
+                    onClick={() => toggleProfessor(prof)}
+                    style={{
+                      ...styles.dropdownOption,
+                      background: selectedProfessor === prof ? '#E0E7FF' : 'transparent',
+                      color: selectedProfessor === prof ? '#1976D2' : '#1F2937',
+                    }}
+                  >
+                    {prof}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div style={styles.filterRow}>
-        <label style={styles.label}>Credits</label>
-        <div style={styles.multiSelectWrapper} ref={creditsRef}>
+      {/* Row 2: Credits and Days */}
+      <div style={styles.row}>
+        <div style={styles.filterColumn}>
+          <label style={styles.label}>Credits</label>
+          <div style={styles.multiSelectWrapper} ref={creditsRef}>
           <button
             onClick={() => setCreditsDropdownOpen(!creditsDropdownOpen)}
             style={{
@@ -152,13 +265,13 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
                 </button>
               ))}
             </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      <div style={styles.filterRow}>
-        <label style={styles.label}>Days</label>
-        <div style={styles.multiSelectWrapper} ref={daysRef}>
+        <div style={styles.filterColumn}>
+          <label style={styles.label}>Days</label>
+          <div style={styles.multiSelectWrapper} ref={daysRef}>
           <button
             onClick={() => setDaysDropdownOpen(!daysDropdownOpen)}
             style={{
@@ -190,6 +303,46 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
                 </label>
               ))}
             </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Years */}
+      <div style={styles.filterRow}>
+        <label style={styles.label}>Years</label>
+        <div style={styles.multiSelectWrapper} ref={yearsRef}>
+          <button
+            onClick={() => setYearDropdownOpen(!yearDropdownOpen)}
+            style={{
+              ...styles.multiSelectButton,
+              borderColor: yearDropdownOpen ? '#1976D2' : '#E5E7EB',
+            }}
+          >
+            <span>{getSelectedYearsDisplay()}</span>
+            <ChevronDown
+              size={18}
+              style={{
+                transform: yearDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s',
+              }}
+            />
+          </button>
+
+          {yearDropdownOpen && (
+            <div style={styles.daysDropdown}>
+              {years.map((year) => (
+                <label key={year} style={styles.daysCheckboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={selectedYears.includes(year)}
+                    onChange={() => toggleYear(year)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  {year}
+                </label>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -210,6 +363,8 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false }) {
             days: selectedDays,
             department: selectedDepartment,
             credits: selectedCredits,
+            professor: selectedProfessor,
+            years: selectedYears,
             // TODO: Add time range when implemented
           })}
           onMouseEnter={(e) => e.target.style.background = '#1565C0'}
@@ -290,6 +445,18 @@ const styles = {
     fontWeight: '600',
     color: '#1F2937',
   },
+  row: {
+    display: 'flex',
+    gap: '1rem',
+    width: '100%',
+  },
+  filterColumn: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+    minWidth: 0,
+  },
   filterRow: {
     display: 'flex',
     flexDirection: 'column',
@@ -345,6 +512,8 @@ const styles = {
     flexDirection: 'column',
     gap: '0.25rem',
     padding: '0.5rem',
+    maxHeight: '200px',   // limit height
+    overflowY: 'auto',    // enable scroll
   },
   daysCheckboxLabel: {
     display: 'flex',

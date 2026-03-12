@@ -81,6 +81,7 @@ function SearchPanel({ onSearch = () => {} }) {
 
             <input
               ref={inputRef}
+              maxLength={100}
               type="text"
               placeholder="Search by course code, name, keyword, professor, or department"
               value={searchInput}
@@ -177,9 +178,7 @@ function SearchPanel({ onSearch = () => {} }) {
 
 const styles = {
   container: {
-    maxWidth: "800px",
     width: "100%",
-    margin: "0 auto",
     position: "relative",
   },
   panel: {

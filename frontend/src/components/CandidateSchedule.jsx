@@ -2,18 +2,21 @@ import React, { useState } from 'react';
 import { Info } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 
-function CandidateSchedule({ courses = [], onRemoveCourse = () => {}, openModal }) {
+function CandidateSchedule({ schedule = [], onRemoveCourse = () => {}, openModal }) {
   const [viewCourse, setViewCourse] = useState(null);
-
+  const courses = schedule.courses || [];
+  const totalCredits = schedule.totalCredits || 0;
   const panelStyle = {
-    maxWidth: '800px',
     width: '100%',
-    margin: '0 auto',
+    maxWidth: '250px',
     padding: '1.25rem',
     background: '#FFFFFF',
     border: '1px solid #E5E7EB',
     borderRadius: '12px',
     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
   };
 
   const headingStyle = {
@@ -23,11 +26,19 @@ function CandidateSchedule({ courses = [], onRemoveCourse = () => {}, openModal 
     marginBottom: '0.75rem',
   };
 
+  const subHeadingStyle = {
+    color: '#6B7280',
+    fontSize: '0.9rem',
+    marginTop: '-0.5rem',
+    marginBottom: '1rem',
+  };
+
   const courseContainerStyle = {
     display: 'flex',
     flexDirection: 'column',
     gap: '1rem',
-    marginBottom: '1rem',
+    flex: 1,
+    overflowY: 'auto',
   };
 
   const courseCardStyle = {
@@ -92,7 +103,7 @@ function CandidateSchedule({ courses = [], onRemoveCourse = () => {}, openModal 
   const actionButtonsStyle = {
     display: 'flex',
     gap: '0.75rem',
-    marginTop: '1rem',
+    marginBottom: '1rem',
   };
 
   const buttonStyle = {
@@ -145,75 +156,52 @@ function CandidateSchedule({ courses = [], onRemoveCourse = () => {}, openModal 
     return `${formatTime(startHour, startMinute)} - ${formatTime(endHour, endMinute)}`;
   };
 
-  // NOTE: The backend should ideally provide the totalCredits.
-  // This is a temporary frontend calculation.
-  const totalCredits = courses.reduce((sum, course) => sum + (course.credits || 0), 0);
-
-  if (courses.length === 0) {
-    return (
-      <div style={panelStyle}>
-        <h2 style={headingStyle}>Candidate Schedule</h2>
-        <p style={emptyStateStyle}>Courses added from search results will appear here.</p>
-        <div style={actionButtonsStyle}>
-          <button 
-            onClick={openModal}
-            style={buttonStyle}
-            onMouseEnter={(e) => e.target.style.background = '#1565C0'}
-            onMouseLeave={(e) => e.target.style.background = '#1976D2'}
-          >
-            View Weekly Schedule
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  
   return (
     <div style={panelStyle}>
-      <h2 style={headingStyle}>Candidate Schedule ({courses.length} courses, {totalCredits} credits)</h2>
-      <div style={courseContainerStyle}>
-        {courses.map((course) => (
-          <div key={course.referenceNumber} style={courseCardStyle}>
-            <div style={courseInfoStyle}>
-              <div style={courseTitleStyle}>
-                {course.department} {course.code}
-              </div>
-              <div style={compactDetailStyle}>
-                <span>{formatDays(course.meetingTimes)} {formatTimeRange(course.meetingTimes)}</span>
-                <span>{course.credits} cr</span>
-              </div>
-            </div>
-            
-            <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
-              <button 
-                style={infoButtonStyle} 
-                onClick={() => setViewCourse(course)}
-                title="View Details"
-              >
-                <Info size={18} />
-              </button>
-            <button
-              style={removeButtonStyle}
-              onClick={() => onRemoveCourse(course)}
-              onMouseEnter={(e) => e.target.style.background = '#EF4444'}
-              onMouseLeave={(e) => e.target.style.background = '#EF5350'}
-            >
-              Remove
-            </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <h2 style={headingStyle}>Candidate Schedule</h2>
+      {courses.length > 0 && (
+        <div style={subHeadingStyle}>
+          ({courses.length} courses, {totalCredits} credits)
+        </div>
+      )}
+
       <div style={actionButtonsStyle}>
-        <button 
+        <button
           onClick={openModal}
           style={buttonStyle}
-          onMouseEnter={(e) => e.target.style.background = '#1565C0'}
-          onMouseLeave={(e) => e.target.style.background = '#1976D2'}
+          onMouseEnter={(e) => (e.target.style.background = '#1565C0')}
+          onMouseLeave={(e) => (e.target.style.background = '#1976D2')}
         >
           View Weekly Schedule
         </button>
       </div>
+
+      {courses.length > 0 ? (
+        <div style={courseContainerStyle}>
+          {courses.map((course) => (
+            <div key={course.referenceNumber} style={courseCardStyle}>
+              <div style={courseInfoStyle}>
+                <div style={courseTitleStyle}>
+                  {course.department} {course.code}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button style={infoButtonStyle} onClick={() => setViewCourse(course)} title="View Details">
+                  <Info size={18} />
+                </button>
+                <button style={removeButtonStyle} onClick={() => onRemoveCourse(course)} onMouseEnter={(e) => (e.target.style.background = '#EF4444')} onMouseLeave={(e) => (e.target.style.background = '#EF5350')}>
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={emptyStateStyle}>Courses added from search results will appear here.</p>
+      )}
+
       {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} />}
     </div>
   );

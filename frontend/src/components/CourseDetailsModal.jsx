@@ -64,52 +64,67 @@ function CourseDetailsModal({ course, onClose }) {
     marginRight: '0.5rem',
   };
 
-  const formatTime = (timeStr) => {
-    if (!timeStr) return '';
-    const [hours, minutes] = timeStr.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+  const formatTime = (hour, minute) => {
+    if (hour == null || minute == null) return '';
+    const h = parseInt(hour, 10);
+    const m = parseInt(minute, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const displayHour = h % 12 || 12;
+    const displayMinutes = m < 10 ? `0${m}` : m;
+    return `${displayHour}:${displayMinutes} ${ampm}`;
   };
 
   const formatDays = (times) => {
     if (!times || times.length === 0) return 'TBA';
-    const dayMap = { M: 'Mon', T: 'Tue', W: 'Wed', R: 'Thu', F: 'Fri', S: 'Sat', U: 'Sun' };
-    return times.map(t => dayMap[t.day] || t.day).join(', ');
+    const dayMap = { Monday: 'M', Tuesday: 'T', Wednesday: 'W', Thursday: 'R', Friday: 'F', Saturday: 'S', Sunday: 'U' };
+    const uniqueDays = [...new Set(times.map(t => t.day))];
+    return uniqueDays.map(d => dayMap[d] || d).join('');
   };
 
   const formatTimeRange = (times) => {
     if (!times || times.length === 0) return 'TBA';
     const firstTime = times[0];
-    return `${formatTime(firstTime.start_time)} - ${formatTime(firstTime.end_time)}`;
+    const startHour = firstTime.hour;
+    const startMinute = firstTime.minute;
+
+    const startTimeInMinutes = startHour * 60 + startMinute;
+    const endTimeInMinutes = startTimeInMinutes + firstTime.minutesLong;
+
+    const endHour = Math.floor(endTimeInMinutes / 60) % 24;
+    const endMinute = endTimeInMinutes % 60;
+
+    return `${formatTime(startHour, startMinute)} - ${formatTime(endHour, endMinute)}`;
   };
 
   return (
     <div style={overlayStyle} onClick={onClose}>
       <div style={modalStyle} onClick={e => e.stopPropagation()}>
         <div style={headerStyle}>
-          <h3 style={titleStyle}>{course.subject} {course.number}</h3>
+          <h3 style={titleStyle}>{course.department} {course.code}</h3>
           <button style={closeButtonStyle} onClick={onClose}><X size={24} /></button>
         </div>
         
         <div style={{marginBottom: '1rem', fontWeight: 'bold', fontSize: '1.1rem', color: '#333'}}>
           {course.name}
         </div>
+        
+        {course.description && <div style={{...rowStyle, fontStyle: 'italic', color: '#555'}}>{course.description}</div>}
 
-        <div style={rowStyle}><span style={labelStyle}>Faculty:</span>{course.faculty?.join(', ') || 'TBA'}</div>
+        <div style={rowStyle}><span style={labelStyle}>Professor(s):</span>{course.professorNames?.join(', ') || 'TBA'}</div>
         <div style={rowStyle}><span style={labelStyle}>Section:</span>{course.section}</div>
         <div style={rowStyle}><span style={labelStyle}>Credits:</span>{course.credits}</div>
-        <div style={rowStyle}><span style={labelStyle}>Schedule:</span>{formatDays(course.times)} {formatTimeRange(course.times)}</div>
-        <div style={rowStyle}><span style={labelStyle}>Location:</span>{course.location}</div>
+        <div style={rowStyle}><span style={labelStyle}>Schedule:</span>{formatDays(course.meetingTimes)} {formatTimeRange(course.meetingTimes)}</div>
+        {/* Location is not in the new format */}
+        {/* <div style={rowStyle}><span style={labelStyle}>Location:</span>{course.location || 'TBA'}</div> */}
+        {course.prerequisites && course.prerequisites.length > 0 && <div style={rowStyle}><span style={labelStyle}>Prerequisites:</span>{course.prerequisites.join(', ')}</div>}
         <div style={rowStyle}>
           <span style={labelStyle}>Seats:</span>
-          {course.open_seats} / {course.total_seats}
+          {course.openSeats} / {course.maxCapacity}
           <span style={{
             marginLeft: '10px', padding: '2px 8px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold',
-            backgroundColor: course.is_open ? '#d1fae5' : '#fee2e2', color: course.is_open ? '#065f46' : '#991b1b'
+            backgroundColor: course.openSeats > 0 ? '#d1fae5' : '#fee2e2', color: course.openSeats > 0 ? '#065f46' : '#991b1b'
           }}>
-            {course.is_open ? 'Open' : 'Closed'}
+            {course.openSeats > 0 ? 'Open' : 'Closed'}
           </span>
         </div>
       </div>

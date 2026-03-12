@@ -1,6 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import * as api from '../apiService';
 
-function WeeklyScheduleModal({ closeModal, courses = [] }) {
+function WeeklyScheduleModal({ closeModal, schedule }) {
+  const [courses, setCourses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [creditHours, setCreditHours] = useState(0);
+
+  useEffect(() => {
+    setCourses(schedule.courses || []);
+    setCreditHours(schedule.totalCredits || 0);
+    setIsLoading(false);
+  }, []);
+  const hours = Array.from({ length: 13 }, (_, i) => 8 + i); // 8am–8pm
   const modalStyle = {
     position: 'fixed',
     top: '50%',
@@ -45,10 +57,11 @@ function WeeklyScheduleModal({ closeModal, courses = [] }) {
   const gridContainerStyle = {
     display: 'grid',
     gridTemplateColumns: `70px repeat(5, 1fr)`,
-    gap: '0px',
+    gridTemplateRows: `repeat(${hours.length}, 1fr)`, 
     textAlign: 'center',
     marginBottom: '1rem',
     fontSize: '0.85rem',
+    height: 'calc(80vh - 100px)', 
   };
 
   const headerCellStyle = {
@@ -71,13 +84,13 @@ function WeeklyScheduleModal({ closeModal, courses = [] }) {
 
   const cellStyle = {
     border: '1px solid #E5E7EB',
-    minHeight: '60px',
     backgroundColor: '#FFFFFF',
     padding: '0.25rem',
     position: 'relative',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
+    flexGrow: 1, 
   };
 
   const courseBlockStyle = (topPercent, heightPercent, colorIndex) => {
@@ -131,61 +144,45 @@ function WeeklyScheduleModal({ closeModal, courses = [] }) {
     return `${hour - 12}:00 PM`;
   };
   
-  const formatTimeStr = (timeStr) => {
-    if (!timeStr) return '';
-    const [hours, minutes] = timeStr.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes}${ampm}`;
+  const formatTime = (hour, minute) => {
+    if (hour == null || minute == null) return '';
+    const h = parseInt(hour, 10);
+    const m = parseInt(minute, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const displayHour = h % 12 || 12;
+    const displayMinutes = m < 10 ? `0${m}` : m;
+    return `${displayHour}:${displayMinutes} ${ampm}`;
   };
 
-  const hours = Array.from({ length: 10 }, (_, i) => 8 + i); // 8am–5pm
+  const formatTimeRange = (time) => {
+    if (!time) return 'TBA';
+    const startHour = time.hour;
+    const startMinute = time.minute;
+    const startTimeInMinutes = startHour * 60 + startMinute;
+    const endTimeInMinutes = startTimeInMinutes + time.minutesLong;
+    const endHour = Math.floor(endTimeInMinutes / 60) % 24;
+    const endMinute = endTimeInMinutes % 60;
+    return `${formatTime(startHour, startMinute)} - ${formatTime(endHour, endMinute)}`;
+  };
 
-  // Map day abbreviations to day names
-  const dayMap = { M: 'Monday', T: 'Tuesday', W: 'Wednesday', R: 'Thursday', F: 'Friday' };
+  
 
-  // Determine if the current hour block is the largest (or first largest) for this course session
+  // Determine if the current hour block is the first one for this course session
   const shouldShowInfo = (dayTime, currentHour) => {
     if (!dayTime) return false;
-    const [sH, sM] = dayTime.start_time.split(':').map(Number);
-    const [eH, eM] = dayTime.end_time.split(':').map(Number);
-    const startTotal = sH * 60 + sM;
-    const endTotal = eH * 60 + eM;
-
-    let maxDuration = -1;
-    let bestHour = -1;
-
-    for (const h of hours) {
-      const hStart = h * 60;
-      const hEnd = (h + 1) * 60;
-      const overlapStart = Math.max(startTotal, hStart);
-      const overlapEnd = Math.min(endTotal, hEnd);
-      const duration = Math.max(0, overlapEnd - overlapStart);
-
-      if (duration > maxDuration) {
-        maxDuration = duration;
-        bestHour = h;
-      }
-    }
-
-    return bestHour === currentHour;
+    const startHour = dayTime.hour;
+    return startHour === currentHour;
   };
 
   // Get courses for a specific day and hour
   const getCoursesForCell = (dayName, hour) => {
     return courses.filter(course => {
-      if (!course.times || course.times.length === 0) return false;
-      return course.times.some(time => {
-        const dayMatch = dayMap[time.day] === dayName;
-        if (!dayMatch) return false;
+      if (!course.meetingTimes || course.meetingTimes.length === 0) return false;
+      return course.meetingTimes.some(time => {
+        if (time.day !== dayName) return false;
         
-        // Convert time strings to minutes
-        const [startH, startM] = time.start_time.split(':').map(Number);
-        const [endH, endM] = time.end_time.split(':').map(Number);
-        
-        const startMinutes = startH * 60 + startM;
-        const endMinutes = endH * 60 + endM;
+        const startMinutes = time.hour * 60 + time.minute;
+        const endMinutes = startMinutes + time.minutesLong;
         
         // Check if course overlaps with this hour block (hour:00 to (hour+1):00)
         const hourStartMinutes = hour * 60;
@@ -198,19 +195,16 @@ function WeeklyScheduleModal({ closeModal, courses = [] }) {
 
   // Calculate the position and height of a course within an hour block as percentages
   const getCourseBlockDimensions = (course, dayName, hour) => {
-    const dayTime = course.times.find(t => {
-      if (dayMap[t.day] !== dayName) return false;
-      const [sH, sM] = t.start_time.split(':').map(Number);
-      const [eH, eM] = t.end_time.split(':').map(Number);
-      return (sH * 60 + sM) < (hour + 1) * 60 && (eH * 60 + eM) > hour * 60;
+    const dayTime = course.meetingTimes.find(t => {
+      if (t.day !== dayName) return false;
+      const startMinutes = t.hour * 60 + t.minute;
+      const endMinutes = startMinutes + t.minutesLong;
+      return startMinutes < (hour + 1) * 60 && endMinutes > hour * 60;
     });
     if (!dayTime) return null;
     
-    const [startH, startM] = dayTime.start_time.split(':').map(Number);
-    const [endH, endM] = dayTime.end_time.split(':').map(Number);
-    
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
+    const startMinutes = dayTime.hour * 60 + dayTime.minute;
+    const endMinutes = startMinutes + dayTime.minutesLong;
     
     const hourStartMinutes = hour * 60;
     const hourEndMinutes = (hour + 1) * 60;
@@ -225,6 +219,14 @@ function WeeklyScheduleModal({ closeModal, courses = [] }) {
     return { topPercent, heightPercent, dayTime };
   };
 
+  if (isLoading) {
+    // A simple loading state within the modal
+    return <div style={overlayStyle} onClick={closeModal}><div style={modalStyle}><div style={contentStyle}>Loading schedule...</div></div></div>;
+  }
+
+  if (error) {
+    return <div style={overlayStyle} onClick={closeModal}><div style={modalStyle}><div style={contentStyle}>Error: {error}</div></div></div>;
+  }
   return (
     <>
       <div style={overlayStyle} onClick={closeModal}></div>
@@ -265,17 +267,13 @@ function WeeklyScheduleModal({ closeModal, courses = [] }) {
                         const colorIndex = courses.indexOf(course);
                         
                         // Calculate continuity
-                        const [startH, startM] = dayTime.start_time.split(':').map(Number);
-                        const [endH, endM] = dayTime.end_time.split(':').map(Number);
-                        const startTotalMinutes = startH * 60 + startM;
-                        const endTotalMinutes = endH * 60 + endM;
+                        const startTotalMinutes = dayTime.hour * 60 + dayTime.minute;
+                        const endTotalMinutes = startTotalMinutes + dayTime.minutesLong;
                         const hourStartMinutes = hour * 60;
                         const hourEndMinutes = (hour + 1) * 60;
 
                         const continuesUp = startTotalMinutes < hourStartMinutes;
                         const continuesDown = endTotalMinutes > hourEndMinutes;
-
-                        const timeLabel = dayTime ? `${formatTimeStr(dayTime.start_time)} - ${formatTimeStr(dayTime.end_time)}` : '';
 
                         return (
                           <div 
@@ -285,13 +283,13 @@ function WeeklyScheduleModal({ closeModal, courses = [] }) {
                               ...(continuesUp ? { borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none' } : {}),
                               ...(continuesDown ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottom: 'none' } : {}),
                             }}
-                            title={`${course.subject} ${course.number} - ${course.faculty?.join(', ') || 'TBA'}`}
+                            title={`${course.department} ${course.code} - ${course.professorNames?.join(', ') || 'TBA'}`}
                           >
                             {shouldShowInfo(dayTime, hour) && (
                               <>
-                                <div style={{fontWeight: 'bold', fontSize: '0.7rem'}}>{course.subject} {course.number}</div>
-                                <div style={{fontSize: '0.65rem'}}>{timeLabel}</div>
-                                <div style={{fontSize: '0.65rem', fontStyle: 'italic'}}>{course.location}</div>
+                                <div style={{fontWeight: 'bold', fontSize: '0.7rem'}}>{course.department} {course.code}</div>
+                                <div style={{fontSize: '0.65rem'}}>{formatTimeRange(dayTime)}</div>
+                                {/* Location is not available in the new format */}
                               </>
                             )}
                           </div>
