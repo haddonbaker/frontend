@@ -14,23 +14,23 @@ function App() {
   const [error, setError] = useState(null);
 
   // Fetch initial schedule on component mount
-  // useEffect(() => {
-  //   const loadInitialData = async () => {
-  //     setIsLoading(true);
-  //     setError(null);
-  //     try {
-  //       const schedule = await api.getSchedule();
-  //       setCandidateSchedule(schedule);
-  //     } catch (err) {
-  //       setError(err.message);
-  //       // Display a more user-friendly error
-  //       alert(`Failed to load schedule: ${err.message}`);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-  //   loadInitialData();
-  // }, []);
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const schedule = await api.getSchedule();
+        setCandidateSchedule(schedule);
+      } catch (err) {
+        setError(err.message);
+        // Display a more user-friendly error
+        alert(`Failed to load schedule: ${err.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadInitialData();
+  }, []);
 
   const handleSearch = async (query, filters) => {
     setIsLoading(true);
@@ -74,16 +74,33 @@ function App() {
   };
 
   const containerStyle = {
-    padding: '1rem 0.75rem',
+    padding: '1rem 1.5rem',
     fontFamily: 'system-ui, -apple-system, sans-serif',
+    display: 'flex',
+    gap: '1.5rem',
+    width: '100%',
+    margin: 0,
+    background: '#F8FAFC',
+    height: '100vh',
+  }; 
+
+  const leftPanelStyle = {
+    flex: '2 1 0%',
     display: 'flex',
     flexDirection: 'column',
     gap: '1.25rem',
-    maxWidth: '1200px',
-    margin: '0 auto',
-    background: '#F8FAFC',
-    minHeight: '100vh',
-  }; 
+    minWidth: 0,
+  };
+
+  const rightPanelStyle = {
+    flex: '1 1 0%',
+  };
+
+  const searchResultsWrapperStyle = {
+    flex: 1,
+    overflowY: 'auto',
+    minHeight: 0,
+  };
 
   // A simple loading/error display
   if (isLoading && !searchResults.length && !candidateSchedule.courses.length) {
@@ -96,25 +113,34 @@ function App() {
 
   return (
     <div style={containerStyle}>
-      
-      {/* Top: Course Search */}
-      <SearchPanel onSearch={handleSearch} />
+      <div style={leftPanelStyle}>
+        {/* Top-Left: Course Search */}
+        <SearchPanel onSearch={handleSearch} />
 
-      {/* Middle: Search Results */}
-      <SearchResults 
-        results={searchResults} 
-        onAddCourse={handleAddCourse}
-      />
+        {/* Bottom-Left: Search Results (scrollable) */}
+        <div style={searchResultsWrapperStyle}>
+          <SearchResults 
+            results={searchResults} 
+            onAddCourse={handleAddCourse}
+          />
+        </div>
+      </div>
 
-      {/* Bottom: Candidate Schedule */}
-      <CandidateSchedule 
-        courses={candidateSchedule.courses}
-        onRemoveCourse={handleRemoveCourse}
-        openModal={() => setShowScheduleModal(true)} 
-      />
+      <div style={rightPanelStyle}>
+        <CandidateSchedule 
+          schedule={candidateSchedule}
+          onRemoveCourse={handleRemoveCourse}
+          openModal={() => setShowScheduleModal(true)} 
+        />
+      </div>
 
       {/* Weekly Schedule Popup */}
-      {showScheduleModal && <WeeklyScheduleModal closeModal={() => setShowScheduleModal(false)} courses={candidateSchedule.courses} />}
+      {showScheduleModal && 
+        <WeeklyScheduleModal 
+        closeModal={() => setShowScheduleModal(false)} 
+        schedule={candidateSchedule} 
+        />
+      }
     </div>
   );
 }

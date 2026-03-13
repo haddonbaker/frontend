@@ -6,14 +6,13 @@ function SearchResults({ results = [], onAddCourse = () => {} }) {
   const [viewCourse, setViewCourse] = useState(null);
 
   const panelStyle = {
-    maxWidth: '800px',
-    margin: '0 auto',
     padding: '1.25rem',
     background: '#FFFFFF',
     border: '1px solid #E5E7EB',
     borderRadius: '12px',
     width: '100%',
     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+    boxSizing: 'border-box', // important for padding + width
   };
 
   const headingStyle = {
