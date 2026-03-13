@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Info } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 import * as api from '../apiService';
+import { useNotification } from './Notification';
 
 function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, openModal }) {
   const [viewCourse, setViewCourse] = useState(null);
   const courses = schedule.courses || [];
+  const { showNotification } = useNotification();
   const totalCredits = schedule.totalCredits || 0;
   const panelStyle = {
     width: '100%',
@@ -17,7 +19,8 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
+    maxHeight: 'calc(100vh - 2rem)',
+    minHeight: '217px', // happens to be the exact height of search and results when empty 
   };
 
   const headingStyle = {
@@ -126,56 +129,34 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
     border: '2px solid #1976D2',
   };
 
+  const disabledButtonStyle = {
+    ...secondaryButtonStyle,
+    background: '#F9FAFB',
+    color: '#9CA3AF',
+    borderColor: '#D1D5DB',
+    cursor: 'not-allowed',
+  };
+
   const emptyStateStyle = {
     color: '#6B7280',
     fontSize: '0.95rem',
     margin: 0,
   };
 
-  const formatTime = (hour, minute) => {
-    if (hour == null || minute == null) return '';
-    const h = parseInt(hour, 10);
-    const m = parseInt(minute, 10);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const displayHour = h % 12 || 12;
-    const displayMinutes = m < 10 ? `0${m}` : m;
-    return `${displayHour}:${displayMinutes} ${ampm}`;
-  };
-
-  const formatDays = (times) => {
-    if (!times || times.length === 0) return 'TBA';
-    const dayMap = { Monday: 'M', Tuesday: 'T', Wednesday: 'W', Thursday: 'R', Friday: 'F', Saturday: 'S', Sunday: 'U' };
-    const uniqueDays = [...new Set(times.map(t => t.day))];
-    return uniqueDays.map(d => dayMap[d] || d).join('');
-  };
-
-  const formatTimeRange = (times) => {
-    if (!times || times.length === 0) return 'TBA';
-    const firstTime = times[0];
-    const startHour = firstTime.hour;
-    const startMinute = firstTime.minute;
-
-    const startTimeInMinutes = startHour * 60 + startMinute;
-    const endTimeInMinutes = startTimeInMinutes + firstTime.minutesLong;
-
-    const endHour = Math.floor(endTimeInMinutes / 60) % 24;
-    const endMinute = endTimeInMinutes % 60;
-
-    return `${formatTime(startHour, startMinute)} - ${formatTime(endHour, endMinute)}`;
-  };
-
   const handleSaveSchedule = async () => {
     if (!student) {
-      alert('Student information is not available to save schedule.');
+      showNotification('Student information is not available to save schedule.', 'error');
       return;
     }
     try {
       await api.saveSchedule(schedule, student);
-      alert('Schedule saved successfully!');
+      showNotification('Schedule saved successfully!', 'success');
     } catch (error) {
-      alert(`Error saving schedule: ${error.message}`);
+      showNotification(`Error saving schedule: ${error.message}`, 'error');
     }
   };
+
+  const isScheduleEmpty = courses.length === 0;
 
   
   return (
@@ -198,12 +179,13 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
         </button>
         <button
           onClick={handleSaveSchedule}
-          style={secondaryButtonStyle}
+          disabled={isScheduleEmpty}
+          style={isScheduleEmpty ? disabledButtonStyle : secondaryButtonStyle}
           onMouseEnter={(e) => {
-            e.target.style.background = '#EBF5FF';
+            if (!isScheduleEmpty) e.target.style.background = '#EBF5FF';
           }}
           onMouseLeave={(e) => {
-            e.target.style.background = '#FFFFFF';
+            if (!isScheduleEmpty) e.target.style.background = '#FFFFFF';
           }}
         >
           Save Schedule

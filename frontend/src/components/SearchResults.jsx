@@ -98,6 +98,11 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     margin: 0,
   };
 
+  const noResultsStyle = {
+    ...emptyStateStyle,
+    color: '#DC2626', // A shade of red
+  };
+
   const loadingContainerStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -136,26 +141,36 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     return `${displayHour}:${displayMinutes} ${ampm}`;
   };
 
-  const formatDays = (times) => {
+  const formatMeetingTimes = (times) => {
     if (!times || times.length === 0) return 'TBA';
+
     const dayMap = { Monday: 'M', Tuesday: 'T', Wednesday: 'W', Thursday: 'R', Friday: 'F', Saturday: 'S', Sunday: 'U' };
-    const uniqueDays = [...new Set(times.map(t => t.day))];
-    return uniqueDays.map(d => dayMap[d] || d).join('');
-  };
+    const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  const formatTimeRange = (times) => {
-    if (!times || times.length === 0) return 'TBA';
-    const firstTime = times[0];
-    const startHour = firstTime.hour;
-    const startMinute = firstTime.minute;
+    const timeGroups = new Map();
 
-    const startTimeInMinutes = startHour * 60 + startMinute;
-    const endTimeInMinutes = startTimeInMinutes + firstTime.minutesLong;
+    times.forEach(time => {
+      const startTimeInMinutes = time.hour * 60 + time.minute;
+      const endTimeInMinutes = startTimeInMinutes + time.minutesLong;
+      const endHour = Math.floor(endTimeInMinutes / 60) % 24;
+      const endMinute = endTimeInMinutes % 60;
+      const timeRangeStr = `${formatTime(time.hour, time.minute)} - ${formatTime(endHour, endMinute)}`;
+      if (!timeGroups.has(timeRangeStr)) {
+        timeGroups.set(timeRangeStr, []);
+      }
+      timeGroups.get(timeRangeStr).push(time.day);
+    });
 
-    const endHour = Math.floor(endTimeInMinutes / 60) % 24;
-    const endMinute = endTimeInMinutes % 60;
+    const sortedEntries = [...timeGroups.entries()].sort((a, b) => {
+      const firstDayA = a[1].sort((d1, d2) => dayOrder.indexOf(d1) - dayOrder.indexOf(d2))[0];
+      const firstDayB = b[1].sort((d1, d2) => dayOrder.indexOf(d1) - dayOrder.indexOf(d2))[0];
+      return dayOrder.indexOf(firstDayA) - dayOrder.indexOf(firstDayB);
+    });
 
-    return `${formatTime(startHour, startMinute)} - ${formatTime(endHour, endMinute)}`;
+    return sortedEntries.map(([timeRange, days]) => {
+      const dayStr = days.map(d => dayMap[d] || d).join('');
+      return `${dayStr} ${timeRange}`;
+    }).join(', ');
   };
 
   if (results.length === 0) {
@@ -165,7 +180,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     return (
       <div style={panelStyle}>
         <h2 style={headingStyle}>Search Results</h2>
-        <p style={emptyStateStyle}>{message}</p>
+        <p style={searchPerformed ? noResultsStyle : emptyStateStyle}>{message}</p>
       </div>
     );
   }
@@ -182,7 +197,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
               </div>
               
               <div style={compactDetailStyle}>
-                <span>{formatDays(course.meetingTimes)} {formatTimeRange(course.meetingTimes)}</span>
+                <span>{formatMeetingTimes(course.meetingTimes)}</span>
                 <span>{course.credits} cr</span>
                 <span style={statusStyle(course.openSeats > 0)}>
                   {course.openSeats > 0 ? 'Open' : 'Closed'}
