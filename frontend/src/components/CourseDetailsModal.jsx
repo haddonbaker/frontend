@@ -100,7 +100,7 @@ function CourseDetailsModal({ course, onClose }) {
     <div style={overlayStyle} onClick={onClose}>
       <div style={modalStyle} onClick={e => e.stopPropagation()}>
         <div style={headerStyle}>
-          <h3 style={titleStyle}>{course.department} {course.code}</h3>
+          <h3 style={titleStyle}>{course.department} {course.code}{course.section ? `${course.section}` : ''}</h3>
           <button style={closeButtonStyle} onClick={onClose}><X size={24} /></button>
         </div>
         

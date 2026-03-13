@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Loader2 } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 
-function SearchResults({ results = [], onAddCourse = () => {} }) {
+function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed = false, isLoading = false }) {
   const [viewCourse, setViewCourse] = useState(null);
 
   const panelStyle = {
@@ -98,6 +98,34 @@ function SearchResults({ results = [], onAddCourse = () => {} }) {
     margin: 0,
   };
 
+  const loadingContainerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2rem',
+    gap: '1rem',
+    color: '#6B7280',
+  };
+
+  if (isLoading) {
+    return (
+      <div style={panelStyle}>
+        <style>{`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div style={loadingContainerStyle}>
+          <Loader2 size={32} style={{ animation: 'spin 1s linear infinite' }} />
+          <div>Searching for courses...</div>
+        </div>
+      </div>
+    );
+  }
+
+
   const formatTime = (hour, minute) => {
     if (hour == null || minute == null) return '';
     const h = parseInt(hour, 10);
@@ -131,10 +159,13 @@ function SearchResults({ results = [], onAddCourse = () => {} }) {
   };
 
   if (results.length === 0) {
+    const message = searchPerformed
+      ? "No results found for this query. Please try a different search."
+      : "No results yet. Search for classes to see them here.";
     return (
       <div style={panelStyle}>
         <h2 style={headingStyle}>Search Results</h2>
-        <p style={emptyStateStyle}>No results yet. Search for classes to see them here.</p>
+        <p style={emptyStateStyle}>{message}</p>
       </div>
     );
   }
@@ -147,7 +178,7 @@ function SearchResults({ results = [], onAddCourse = () => {} }) {
           <div key={index} style={courseCardStyle}>
             <div style={courseInfoStyle}>
               <div style={courseTitleStyle}>
-                {course.department} {course.code}
+                {course.department} {course.code}{course.section ? `${course.section}` : ''}
               </div>
               
               <div style={compactDetailStyle}>

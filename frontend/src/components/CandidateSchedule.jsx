@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Info } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
+import * as api from '../apiService';
 
-function CandidateSchedule({ schedule = [], onRemoveCourse = () => {}, openModal }) {
+function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, openModal }) {
   const [viewCourse, setViewCourse] = useState(null);
   const courses = schedule.courses || [];
   const totalCredits = schedule.totalCredits || 0;
@@ -118,6 +119,13 @@ function CandidateSchedule({ schedule = [], onRemoveCourse = () => {}, openModal
     transition: 'background-color 0.2s, box-shadow 0.2s',
   };
 
+  const secondaryButtonStyle = {
+    ...buttonStyle,
+    background: '#FFFFFF',
+    color: '#1976D2',
+    border: '2px solid #1976D2',
+  };
+
   const emptyStateStyle = {
     color: '#6B7280',
     fontSize: '0.95rem',
@@ -156,6 +164,19 @@ function CandidateSchedule({ schedule = [], onRemoveCourse = () => {}, openModal
     return `${formatTime(startHour, startMinute)} - ${formatTime(endHour, endMinute)}`;
   };
 
+  const handleSaveSchedule = async () => {
+    if (!student) {
+      alert('Student information is not available to save schedule.');
+      return;
+    }
+    try {
+      await api.saveSchedule(schedule, student);
+      alert('Schedule saved successfully!');
+    } catch (error) {
+      alert(`Error saving schedule: ${error.message}`);
+    }
+  };
+
   
   return (
     <div style={panelStyle}>
@@ -175,6 +196,18 @@ function CandidateSchedule({ schedule = [], onRemoveCourse = () => {}, openModal
         >
           View Weekly Schedule
         </button>
+        <button
+          onClick={handleSaveSchedule}
+          style={secondaryButtonStyle}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#EBF5FF';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = '#FFFFFF';
+          }}
+        >
+          Save Schedule
+        </button>
       </div>
 
       {courses.length > 0 ? (
@@ -183,7 +216,7 @@ function CandidateSchedule({ schedule = [], onRemoveCourse = () => {}, openModal
             <div key={course.referenceNumber} style={courseCardStyle}>
               <div style={courseInfoStyle}>
                 <div style={courseTitleStyle}>
-                  {course.department} {course.code}
+                  {course.department} {course.code}{course.section ? `${course.section}` : ''}
                 </div>
               </div>
 

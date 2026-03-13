@@ -11,6 +11,9 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
   const [isLoading, setIsLoading] = useState(false); // Start with loading true
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  // TODO: Replace with actual student data from login/context
+  const [student, setStudent] = useState({ id: '12345', name: 'Test Student' });
   const [error, setError] = useState(null);
 
   // Fetch initial schedule on component mount
@@ -33,7 +36,10 @@ function App() {
   }, []);
 
   const handleSearch = async (query, filters) => {
+    // logic for a spinner, better UX
+    const startTime = Date.now();
     setIsLoading(true);
+    setSearchPerformed(true);
     setError(null);
     try {
       const results = await api.searchCourses(query, filters);
@@ -42,7 +48,14 @@ function App() {
       setError(err.message);
       alert(`Search failed: ${err.message}`);
     } finally {
-      setIsLoading(false);
+      const elapsedTime = Date.now() - startTime;
+      // add a delay so the user actually sees that something is happening, even if the API is very fast
+      const minDelay = 500; // half a second
+      if (elapsedTime < minDelay) {
+        setTimeout(() => setIsLoading(false), minDelay - elapsedTime);
+      } else {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -93,7 +106,8 @@ function App() {
   };
 
   const rightPanelStyle = {
-    flex: '1 1 0%',
+    flex: 'flex: 0 0 auto',
+    marginRight: "2rem"
   };
 
   const searchResultsWrapperStyle = {
@@ -122,6 +136,8 @@ function App() {
           <SearchResults 
             results={searchResults} 
             onAddCourse={handleAddCourse}
+            searchPerformed={searchPerformed}
+            isLoading={isLoading}
           />
         </div>
       </div>
@@ -129,6 +145,7 @@ function App() {
       <div style={rightPanelStyle}>
         <CandidateSchedule 
           schedule={candidateSchedule}
+          student={student}
           onRemoveCourse={handleRemoveCourse}
           openModal={() => setShowScheduleModal(true)} 
         />
