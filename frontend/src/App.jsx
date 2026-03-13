@@ -3,15 +3,20 @@ import SearchPanel from './components/SearchPanel';
 import SearchResults from './components/SearchResults.jsx';
 import CandidateSchedule from './components/CandidateSchedule.jsx';
 import WeeklyScheduleModal from './components/WeeklyScheduleModal';
+import { NotificationProvider, useNotification } from './components/Notification.jsx';
 import * as api from './apiService';
 
 
-function App() {
+function AppContent() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
   const [isLoading, setIsLoading] = useState(false); // Start with loading true
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  // TODO: Replace with actual student data from login/context
+  const [student, setStudent] = useState({ id: '12345', name: 'Test Student' });
   const [error, setError] = useState(null);
+  const { showNotification } = useNotification();
 
   // Fetch initial schedule on component mount
   useEffect(() => {
@@ -24,7 +29,7 @@ function App() {
       } catch (err) {
         setError(err.message);
         // Display a more user-friendly error
-        alert(`Failed to load schedule: ${err.message}`);
+        showNotification(`Failed to load schedule: ${err.message}`, 'error');
       } finally {
         setIsLoading(false);
       }
@@ -33,16 +38,26 @@ function App() {
   }, []);
 
   const handleSearch = async (query, filters) => {
+    // logic for a spinner, better UX
+    const startTime = Date.now();
     setIsLoading(true);
+    setSearchPerformed(true);
     setError(null);
     try {
       const results = await api.searchCourses(query, filters);
       setSearchResults(results);
     } catch (err) {
       setError(err.message);
-      alert(`Search failed: ${err.message}`);
+      showNotification(`Search failed: ${err.message}`, 'error');
     } finally {
-      setIsLoading(false);
+      const elapsedTime = Date.now() - startTime;
+      // add a delay so the user actually sees that something is happening, even if the API is very fast
+      const minDelay = 500; // half a second
+      if (elapsedTime < minDelay) {
+        setTimeout(() => setIsLoading(false), minDelay - elapsedTime);
+      } else {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -55,7 +70,7 @@ function App() {
       setCandidateSchedule(updatedSchedule);
     } catch (err) {
       // The backend should send back a meaningful error message
-      alert(`Error adding course: ${err.message}`);
+      showNotification(`Error adding course: ${err.message}`, 'error');
       setError(err.message);
     }
   };
@@ -68,7 +83,7 @@ function App() {
       const updatedSchedule = await api.getSchedule();
       setCandidateSchedule(updatedSchedule);
     } catch (err) {
-      alert(`Error removing course: ${err.message}`);
+      showNotification(`Error removing course: ${err.message}`, 'error');
       setError(err.message);
     }
   };
@@ -93,7 +108,8 @@ function App() {
   };
 
   const rightPanelStyle = {
-    flex: '1 1 0%',
+    flex: 'flex: 0 0 auto',
+    marginRight: "2rem"
   };
 
   const searchResultsWrapperStyle = {
@@ -101,15 +117,6 @@ function App() {
     overflowY: 'auto',
     minHeight: 0,
   };
-
-  // A simple loading/error display
-  if (isLoading && !searchResults.length && !candidateSchedule.courses.length) {
-    return <div style={{...containerStyle, justifyContent: 'center', alignItems: 'center'}}>Loading...</div>;
-  }
-  if (error) {
-    // A more robust error display could be implemented here
-    console.error("Vite App Error:", error);
-  }
 
   return (
     <div style={containerStyle}>
@@ -122,6 +129,8 @@ function App() {
           <SearchResults 
             results={searchResults} 
             onAddCourse={handleAddCourse}
+            searchPerformed={searchPerformed}
+            isLoading={isLoading}
           />
         </div>
       </div>
@@ -129,6 +138,7 @@ function App() {
       <div style={rightPanelStyle}>
         <CandidateSchedule 
           schedule={candidateSchedule}
+          student={student}
           onRemoveCourse={handleRemoveCourse}
           openModal={() => setShowScheduleModal(true)} 
         />
@@ -142,6 +152,14 @@ function App() {
         />
       }
     </div>
+  );
+}
+
+function App() {
+  return (
+    <NotificationProvider>
+      <AppContent />
+    </NotificationProvider>
   );
 }
 

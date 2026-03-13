@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import * as api from '../apiService';
+import CourseDetailsModal from './CourseDetailsModal';
+import { Italic } from 'lucide-react';
 
 function WeeklyScheduleModal({ closeModal, schedule }) {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [creditHours, setCreditHours] = useState(0);
+  const [viewCourse, setViewCourse] = useState(null);
 
   useEffect(() => {
     setCourses(schedule.courses || []);
@@ -116,6 +119,7 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
       alignItems: 'center',
       justifyContent: 'center',
       border: '1px solid rgba(0,0,0,0.1)',
+      cursor: 'pointer',
     };
   };
 
@@ -132,6 +136,14 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
     alignSelf: 'flex-start',
     marginLeft: '1.25rem',
     marginBottom: '1.25rem',
+  };
+
+  const subHeadingStyle = {
+    color: '#6B7280',
+    fontSize: '0.9rem',
+    marginTop: '-0.5rem',
+    marginBottom: '1rem',
+    fontStyle: 'italic',
   };
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -233,6 +245,9 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
       <div style={modalStyle}>
         <div style={contentStyle}>
           <h2 style={headingStyle}>Weekly Schedule</h2>
+          <div style={subHeadingStyle}>
+          Click on any course block for more details
+        </div>
           <div style={gridContainerStyle}>
             
             {/* Top-left empty corner */}
@@ -283,14 +298,11 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
                               ...(continuesUp ? { borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none' } : {}),
                               ...(continuesDown ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottom: 'none' } : {}),
                             }}
+                            onClick={() => setViewCourse(course)}
                             title={`${course.department} ${course.code} - ${course.professorNames?.join(', ') || 'TBA'}`}
                           >
                             {shouldShowInfo(dayTime, hour) && (
-                              <>
-                                <div style={{fontWeight: 'bold', fontSize: '0.7rem'}}>{course.department} {course.code}</div>
-                                <div style={{fontSize: '0.65rem'}}>{formatTimeRange(dayTime)}</div>
-                                {/* Location is not available in the new format */}
-                              </>
+                                <div style={{fontWeight: 'bold', fontSize: '0.7rem'}}>{course.department} {course.code}{course.section ? `${course.section}` : ''}</div>
                             )}
                           </div>
                         );
@@ -311,6 +323,8 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
         >
           Close
         </button>
+
+        {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} />}
       </div>
     </>
   );

@@ -63,7 +63,7 @@ function CourseDetailsModal({ course, onClose }) {
     color: '#444',
     marginRight: '0.5rem',
   };
-
+  
   const formatTime = (hour, minute) => {
     if (hour == null || minute == null) return '';
     const h = parseInt(hour, 10);
@@ -74,33 +74,43 @@ function CourseDetailsModal({ course, onClose }) {
     return `${displayHour}:${displayMinutes} ${ampm}`;
   };
 
-  const formatDays = (times) => {
+  const formatMeetingTimes = (times) => {
     if (!times || times.length === 0) return 'TBA';
+
     const dayMap = { Monday: 'M', Tuesday: 'T', Wednesday: 'W', Thursday: 'R', Friday: 'F', Saturday: 'S', Sunday: 'U' };
-    const uniqueDays = [...new Set(times.map(t => t.day))];
-    return uniqueDays.map(d => dayMap[d] || d).join('');
-  };
+    const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  const formatTimeRange = (times) => {
-    if (!times || times.length === 0) return 'TBA';
-    const firstTime = times[0];
-    const startHour = firstTime.hour;
-    const startMinute = firstTime.minute;
+    const timeGroups = new Map();
 
-    const startTimeInMinutes = startHour * 60 + startMinute;
-    const endTimeInMinutes = startTimeInMinutes + firstTime.minutesLong;
+    times.forEach(time => {
+      const startTimeInMinutes = time.hour * 60 + time.minute;
+      const endTimeInMinutes = startTimeInMinutes + time.minutesLong;
+      const endHour = Math.floor(endTimeInMinutes / 60) % 24;
+      const endMinute = endTimeInMinutes % 60;
+      const timeRangeStr = `${formatTime(time.hour, time.minute)} - ${formatTime(endHour, endMinute)}`;
+      if (!timeGroups.has(timeRangeStr)) {
+        timeGroups.set(timeRangeStr, []);
+      }
+      timeGroups.get(timeRangeStr).push(time.day);
+    });
 
-    const endHour = Math.floor(endTimeInMinutes / 60) % 24;
-    const endMinute = endTimeInMinutes % 60;
+    const sortedEntries = [...timeGroups.entries()].sort((a, b) => {
+      const firstDayA = a[1].sort((d1, d2) => dayOrder.indexOf(d1) - dayOrder.indexOf(d2))[0];
+      const firstDayB = b[1].sort((d1, d2) => dayOrder.indexOf(d1) - dayOrder.indexOf(d2))[0];
+      return dayOrder.indexOf(firstDayA) - dayOrder.indexOf(firstDayB);
+    });
 
-    return `${formatTime(startHour, startMinute)} - ${formatTime(endHour, endMinute)}`;
+    return sortedEntries.map(([timeRange, days]) => {
+      const dayStr = days.map(d => dayMap[d] || d).join('');
+      return `${dayStr} ${timeRange}`;
+    }).join(', ');
   };
 
   return (
     <div style={overlayStyle} onClick={onClose}>
       <div style={modalStyle} onClick={e => e.stopPropagation()}>
         <div style={headerStyle}>
-          <h3 style={titleStyle}>{course.department} {course.code}</h3>
+          <h3 style={titleStyle}>{course.department} {course.code}{course.section ? `${course.section}` : ''}</h3>
           <button style={closeButtonStyle} onClick={onClose}><X size={24} /></button>
         </div>
         
@@ -113,7 +123,7 @@ function CourseDetailsModal({ course, onClose }) {
         <div style={rowStyle}><span style={labelStyle}>Professor(s):</span>{course.professorNames?.join(', ') || 'TBA'}</div>
         <div style={rowStyle}><span style={labelStyle}>Section:</span>{course.section}</div>
         <div style={rowStyle}><span style={labelStyle}>Credits:</span>{course.credits}</div>
-        <div style={rowStyle}><span style={labelStyle}>Schedule:</span>{formatDays(course.meetingTimes)} {formatTimeRange(course.meetingTimes)}</div>
+        <div style={rowStyle}><span style={labelStyle}>Schedule:</span>{formatMeetingTimes(course.meetingTimes)}</div>
         {/* Location is not in the new format */}
         {/* <div style={rowStyle}><span style={labelStyle}>Location:</span>{course.location || 'TBA'}</div> */}
         {course.prerequisites && course.prerequisites.length > 0 && <div style={rowStyle}><span style={labelStyle}>Prerequisites:</span>{course.prerequisites.join(', ')}</div>}

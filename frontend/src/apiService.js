@@ -35,6 +35,25 @@ export async function searchCourses(query, filters = {}) {
 }
 
 /**
+ * Saves the current candidate schedule for the student.
+ * @param {object} schedule - The schedule object to save.
+ * @param {object} student - The student object.
+ * @returns {Promise<object>} A promise that resolves to the backend's response.
+ */
+export async function saveSchedule(schedule, student) {
+  const response = await fetch(`${BASE_URL}/saveSchedule`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      schedule: schedule,
+      student: student
+    })
+  });
+
+  return handleResponse(response);
+}
+
+/**
  * Fetches the current candidate schedule from the backend.
  * @returns {Promise<object>} A promise that resolves to the schedule object, including courses and total credits.
  */
