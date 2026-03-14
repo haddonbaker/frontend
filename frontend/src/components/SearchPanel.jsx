@@ -170,6 +170,7 @@ function SearchPanel({ onSearch = () => {} }) {
           onApply={handleApplyFilters}
           onReset={handleResetFilters}
           isClosing={isClosingFilters}
+          initialFilters={activeFilters}
         />
       )}
     </div>
