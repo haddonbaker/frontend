@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Info, Loader2 } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 
-function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed = false, isLoading = false }) {
+function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed = false, isLoading = false, onClearResults = () => {} }) {
   const [viewCourse, setViewCourse] = useState(null);
 
   const panelStyle = {
@@ -15,11 +15,17 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     boxSizing: 'border-box', // important for padding + width
   };
 
+  const resultsHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.75rem',
+  };
+
   const headingStyle = {
     color: '#1976D2',
     fontSize: '1.25rem',
-    marginTop: 0,
-    marginBottom: '0.75rem',
+    margin: 0,
   };
 
   const courseContainerStyle = {
@@ -90,6 +96,18 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     padding: '4px',
     display: 'flex',
     alignItems: 'center',
+  };
+
+  const clearButtonStyle = {
+    background: 'transparent',
+    border: '1px solid #EF5350',
+    color: '#EF5350',
+    padding: '0.4rem 0.8rem',
+    borderRadius: '6px',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
   };
 
   const emptyStateStyle = {
@@ -196,7 +214,9 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
       : "No results yet. Search for classes to see them here.";
     return (
       <div style={panelStyle}>
-        <h2 style={headingStyle}>Search Results</h2>
+        <div style={resultsHeaderStyle}>
+          <h2 style={headingStyle}>Search Results</h2>
+        </div>
         <p style={searchPerformed ? noResultsStyle : emptyStateStyle}>{message}</p>
       </div>
     );
@@ -204,7 +224,23 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
 
   return (
     <div style={panelStyle}>
-      <h2 style={headingStyle}>Search Results ({results.length})</h2>
+      <div style={resultsHeaderStyle}>
+        <h2 style={headingStyle}>Search Results ({results.length})</h2>
+        <button
+          style={clearButtonStyle}
+          onClick={onClearResults}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#EF5350';
+            e.target.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'transparent';
+            e.target.style.color = '#EF5350';
+          }}
+        >
+          Clear Results
+        </button>
+      </div>
       <div style={courseContainerStyle}>
         {results.map((course, index) => (
           <div key={index} style={courseCardStyle}>

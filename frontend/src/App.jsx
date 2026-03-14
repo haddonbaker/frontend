@@ -88,6 +88,11 @@ function AppContent() {
     }
   };
 
+  const handleClearResults = () => {
+    setSearchResults([]);
+    setSearchPerformed(false);
+  };
+
   const containerStyle = {
     padding: '1rem 1.5rem',
     fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -131,6 +136,7 @@ function AppContent() {
             onAddCourse={handleAddCourse}
             searchPerformed={searchPerformed}
             isLoading={isLoading}
+            onClearResults={handleClearResults}
           />
         </div>
       </div>
