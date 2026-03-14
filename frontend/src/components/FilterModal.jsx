@@ -6,7 +6,7 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
   const [selectedCredits, setSelectedCredits] = useState(initialFilters.creditHours || []);
   const [selectedProfessors, setSelectedProfessors] = useState(initialFilters.professors || []);
   const [selectedYears, setSelectedYears] = useState(initialFilters.years || []);
-  const [onlyOpenClasses, setOnlyOpenClasses] = useState(initialFilters.isAvailable !== undefined ? initialFilters.isAvailable : true);
+  const [onlyOpenClasses, setOnlyOpenClasses] = useState(initialFilters.isAvailable !== undefined ? initialFilters.isAvailable : false);
   
   const [timeslots, setTimeslots] = useState(() => {
     if (!initialFilters.timeslots || !Array.isArray(initialFilters.timeslots)) return [];
