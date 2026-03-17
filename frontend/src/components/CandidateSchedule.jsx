@@ -1,3 +1,8 @@
+/**
+ * CandidateSchedule.jsx
+ * Author: Haddon Baker
+ * Description: Displays the list of selected courses for the candidate schedule, allows removing courses, viewing details, and saving.
+ */
 import React, { useState } from 'react';
 import { Info } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
@@ -20,7 +25,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
     display: 'flex',
     flexDirection: 'column',
     maxHeight: 'calc(100vh - 2rem)',
-    minHeight: '217px', // happens to be the exact height of search and results when empty 
+    minHeight: '218px', // happens to be the exact height of search and results when empty 
   };
 
   const headingStyle = {

@@ -1,3 +1,8 @@
+/**
+ * FilterModal.jsx
+ * Author: Haddon Baker
+ * Description: A modal component for filtering course search results by department, professor, credits, years, and timeslots.
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 
@@ -38,6 +43,9 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
   });
 
   const [nextId, setNextId] = useState(timeslots.length + 1);
+  
+  const [deptSearch, setDeptSearch] = useState("");
+  const [profSearch, setProfSearch] = useState("");
   
   // Options loaded from API
   const [departments, setDepartments] = useState([]);
@@ -173,7 +181,17 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
             </button>
             {deptDropdownOpen && (
               <div style={styles.daysDropdown}>
-                {departments.map((dept) => (
+                <div style={styles.dropdownSearchContainer}>
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={deptSearch}
+                    onChange={(e) => setDeptSearch(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    style={styles.dropdownSearchInput}
+                  />
+                </div>
+                {departments.filter(d => d.toLowerCase().includes(deptSearch.toLowerCase())).map((dept) => (
                   <label key={dept} style={styles.daysCheckboxLabel}>
                     <input type="checkbox" checked={selectedDepartments.includes(dept)} onChange={() => toggleMultiSelectItem(selectedDepartments, setSelectedDepartments, dept)} style={{ cursor: 'pointer' }} />
                     {dept}
@@ -192,7 +210,17 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
             </button>
             {profDropdownOpen && (
               <div style={styles.daysDropdown}>
-                {professors.map((prof) => (
+                <div style={styles.dropdownSearchContainer}>
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={profSearch}
+                    onChange={(e) => setProfSearch(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    style={styles.dropdownSearchInput}
+                  />
+                </div>
+                {professors.filter(p => p.toLowerCase().includes(profSearch.toLowerCase())).map((prof) => (
                   <label key={prof} style={styles.daysCheckboxLabel}>
                     <input type="checkbox" checked={selectedProfessors.includes(prof)} onChange={() => toggleMultiSelectItem(selectedProfessors, setSelectedProfessors, prof)} style={{ cursor: 'pointer' }} />
                     {prof}
@@ -329,8 +357,10 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
             setSelectedCredits([]);
             setSelectedProfessors([]);
             setSelectedYears([]);
-            setOnlyOpenClasses(true);
+            setOnlyOpenClasses(false);
             setTimeslots([]);
+            setDeptSearch("");
+            setProfSearch("");
             onReset();
         }}>Reset</button>
       </div>
@@ -380,6 +410,14 @@ const styles = {
   daysCheckboxLabel: {
     display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem',
     color: '#1F2937', cursor: 'pointer', padding: '0.4rem 0.5rem', borderRadius: '4px', transition: 'background 0.2s',
+  },
+  dropdownSearchContainer: {
+    position: 'sticky', top: '-0.5rem', background: 'white', zIndex: 5, paddingBottom: '0.25rem',
+    marginTop: '-0.25rem'
+  },
+  dropdownSearchInput: {
+    width: '100%', padding: '0.4rem', border: '1px solid #D1D5DB', borderRadius: '4px',
+    fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box',
   },
   timeRange: { display: 'flex', gap: '0.5rem', alignItems: 'center' },
   timeInput: {

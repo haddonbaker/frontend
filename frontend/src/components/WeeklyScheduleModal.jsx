@@ -1,3 +1,8 @@
+/**
+ * WeeklyScheduleModal.jsx
+ * Author: Haddon Baker
+ * Description: Displays a visual weekly schedule grid of the selected courses.
+ */
 import React, { useState, useEffect } from 'react';
 import * as api from '../apiService';
 import CourseDetailsModal from './CourseDetailsModal';

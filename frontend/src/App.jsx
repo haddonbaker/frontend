@@ -1,3 +1,8 @@
+/**
+ * App.jsx
+ * Author: Haddon Baker
+ * Description: The main application component that orchestrates the search panel, search results, candidate schedule, and modals.
+ */
 import React, { useState, useEffect } from 'react';
 import SearchPanel from './components/SearchPanel';
 import SearchResults from './components/SearchResults.jsx';
@@ -13,8 +18,8 @@ function AppContent() {
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
   const [isLoading, setIsLoading] = useState(false); // Start with loading true
   const [searchPerformed, setSearchPerformed] = useState(false);
-  // TODO: Replace with actual student data from login/context
-  const [student, setStudent] = useState({ id: '12345', name: 'Test Student' });
+
+  const [student, setStudent] = useState({ id: '12345', name: 'Test Student' }); // In a real app, you'd get this from auth context or a user profile API
   const [error, setError] = useState(null);
   const { showNotification } = useNotification();
 
@@ -88,11 +93,13 @@ function AppContent() {
     }
   };
 
+  // for the clear results button
   const handleClearResults = () => {
     setSearchResults([]);
     setSearchPerformed(false);
   };
 
+  // styles 
   const containerStyle = {
     padding: '1rem 1.5rem',
     fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -142,6 +149,7 @@ function AppContent() {
       </div>
 
       <div style={rightPanelStyle}>
+        {/* Top-Right: Candidate Schedule */}
         <CandidateSchedule 
           schedule={candidateSchedule}
           student={student}

@@ -1,3 +1,8 @@
+/**
+ * CourseDetailsModal.jsx
+ * Author: Haddon Baker
+ * Description: A modal displaying detailed information about a specific course.
+ */
 import React from 'react';
 import { X } from 'lucide-react';
 
@@ -64,6 +69,7 @@ function CourseDetailsModal({ course, onClose }) {
     marginRight: '0.5rem',
   };
   
+  // Helper function to format time in 12-hour format with AM/PM
   const formatTime = (hour, minute) => {
     if (hour == null || minute == null) return '';
     const h = parseInt(hour, 10);

@@ -1,3 +1,9 @@
+/*
+* apiService.js
+* Author: Haddon Baker
+* Description: A service module that provides functions to interact with the backend API for searching courses, managing the candidate schedule, and saving schedules.
+*/
+
 const BASE_URL = 'http://localhost:7000';
 
 /**
