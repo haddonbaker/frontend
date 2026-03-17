@@ -1,3 +1,8 @@
+/**
+ * SearchPanel.jsx
+ * Author: Haddon Baker
+ * Description: Provides the search interface for courses, including a text search input and a filter modal toggle.
+ */
 import React, { useState, useRef, useEffect } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import FilterModal from "./FilterModal";
@@ -66,8 +71,6 @@ function SearchPanel({ onSearch = () => {} }) {
   const handleResetFilters = () => {
     setActiveFilters({});
     setFiltersApplied(false);
-    // Optionally, you might want to trigger a new search with reset filters
-    onSearch(searchInput, {});
   };
 
   return (

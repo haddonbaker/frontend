@@ -1,3 +1,8 @@
+/**
+ * Notification.jsx
+ * Author: Haddon Baker
+ * Description: Provides a context and component for displaying temporary notification messages (toasts) to the user.
+ */
 import React, { useState, createContext, useContext, useCallback } from 'react';
 import { X, CheckCircle, AlertTriangle } from 'lucide-react';
 

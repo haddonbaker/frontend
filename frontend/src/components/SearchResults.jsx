@@ -1,3 +1,8 @@
+/**
+ * SearchResults.jsx
+ * Author: Haddon Baker
+ * Description: Displays the results of a course search, allowing users to view details or add courses to their schedule.
+ */
 import React, { useState } from 'react';
 import { Info, Loader2 } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
@@ -118,7 +123,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
 
   const noResultsStyle = {
     ...emptyStateStyle,
-    color: '#DC2626', // A shade of red
+    color: '#DC2626', 
   };
 
   const loadingContainerStyle = {
@@ -131,6 +136,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     color: '#6B7280',
   };
 
+  // UX for search loading state - shows a spinner and message while waiting for results
   if (isLoading) {
     return (
       <div style={panelStyle}>
@@ -148,7 +154,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     );
   }
 
-
+  // Helper function to format meeting times into a user-friendly string
   const formatTime = (hour, minute) => {
     if (hour == null || minute == null) return '';
     const h = parseInt(hour, 10);
@@ -159,6 +165,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     return `${displayHour}:${displayMinutes} ${ampm}`;
   };
 
+  // Helper function to format meeting times into a user-friendly string, grouping by time ranges and sorting by days of the week
   const formatMeetingTimes = (times) => {
     if (!times || times.length === 0) return 'TBA';
 
@@ -208,7 +215,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     }).join(', ');
   };
 
-  if (results.length === 0) {
+  if (results.length === 0) {// Show a different message if no search has been performed yet vs if a search was performed but returned no results
     const message = searchPerformed
       ? "No results found for this query. Please try a different search."
       : "No results yet. Search for classes to see them here.";
