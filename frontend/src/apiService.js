@@ -41,6 +41,25 @@ export async function searchCourses(query, filters = {}) {
 }
 
 /**
+ * Fetches alternative course suggestions based on a course and the current schedule.
+ * @param {object} course - The course object to find alternatives for.
+ * @param {object} schedule - The current schedule object.
+ * @returns {Promise<Array>} A promise that resolves to an array of alternative courses.
+ */
+export async function suggestAlternatives(course, schedule) {
+  const response = await fetch(`${BASE_URL}/suggestAlternatives`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      course: course,
+      schedule: schedule
+    })
+  });
+
+  return handleResponse(response);
+}
+
+/**
  * Saves the current candidate schedule for the student.
  * @param {object} schedule - The schedule object to save.
  * @param {object} student - The student object.
