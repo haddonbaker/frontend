@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Info } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 
-function AlternativesModal({ alternatives, onClose, onAddCourse }) {
+function AlternativesModal({ course, alternatives, onClose, onAddCourse }) {
   const [viewCourse, setViewCourse] = useState(null);
 
   // Helper function to format meeting times (copied from SearchResults for consistency)
@@ -124,7 +124,12 @@ function AlternativesModal({ alternatives, onClose, onAddCourse }) {
         backgroundColor: 'white', padding: '20px', borderRadius: '8px',
         maxWidth: '800px', width: '90%', maxHeight: '80vh', overflowY: 'auto'
       }}>
-        <h3>Alternative Courses</h3>
+        <h3>Alternative Courses {course ? `for ${course.department} ${course.code}${course.section ? ` ${course.section}` : ''}` : ''}</h3>
+        {course && (
+          <p style={{ marginTop: '-0.5rem', marginBottom: '1.5rem', color: '#555' }}>
+            <strong>Original Time:</strong> {formatMeetingTimes(course.meetingTimes)}
+          </p>
+        )}
         <div>
           {alternatives.length > 0 ? (
             <div>

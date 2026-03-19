@@ -23,6 +23,7 @@ function AppContent() {
   const [conflictData, setConflictData] = useState(null);
   const [alternatives, setAlternatives] = useState([]);
   const [showAlternativesModal, setShowAlternativesModal] = useState(false);
+  const [alternativeSource, setAlternativeSource] = useState(null);
 
   const [student, setStudent] = useState({ id: '12345', name: 'Test Student' }); // In a real app, you'd get this from auth context or a user profile API
   const [error, setError] = useState(null);
@@ -108,6 +109,7 @@ function AppContent() {
     try {
       const result = await api.suggestAlternatives(conflictData.course, candidateSchedule);
       setAlternatives(result);
+      setAlternativeSource(conflictData.course);
       setShowAlternativesModal(true);
       setConflictData(null); // Close the notification
     } catch (error) {
@@ -210,6 +212,7 @@ function AppContent() {
       {showAlternativesModal && (
         <AlternativesModal
           alternatives={alternatives}
+          course={alternativeSource}
           onClose={() => setShowAlternativesModal(false)}
           onAddCourse={handleAddCourse}
         />
