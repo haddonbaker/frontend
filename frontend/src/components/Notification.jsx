@@ -40,7 +40,7 @@ export const useNotification = () => {
   return useContext(NotificationContext);
 };
 
-function Notification({ message, type, onClose }) {
+export function Notification({ message, type, onClose, style = {}, children }) {
   const isSuccess = type === 'success';
 
   const containerStyle = {
@@ -60,6 +60,7 @@ function Notification({ message, type, onClose }) {
     animation: 'slideInFromTop 0.5s cubic-bezier(0.2, 0, 0.2, 1)',
     minWidth: '300px',
     maxWidth: '90vw',
+    ...style,
   };
 
   const iconStyle = {
@@ -89,7 +90,8 @@ function Notification({ message, type, onClose }) {
       <div style={containerStyle}>
         {isSuccess ? <CheckCircle size={24} style={iconStyle} /> : <AlertTriangle size={24} style={iconStyle} />}
         <span>{message}</span>
-        <button onClick={onClose} style={closeButtonStyle} aria-label="Close notification"><X size={20} /></button>
+        {children}
+        {onClose && <button onClick={onClose} style={closeButtonStyle} aria-label="Close notification"><X size={20} /></button>}
       </div>
     </>
   );
