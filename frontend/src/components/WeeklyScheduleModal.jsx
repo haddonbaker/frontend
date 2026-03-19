@@ -102,7 +102,7 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
   };
 
   const courseBlockStyle = (topPercent, heightPercent, colorIndex) => {
-    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+    const colors = ['#6395e6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316'];
     return {
       backgroundColor: colors[colorIndex % colors.length],
       color: 'white',
