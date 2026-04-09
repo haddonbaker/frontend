@@ -10,11 +10,13 @@ import CandidateSchedule from './components/CandidateSchedule.jsx';
 import WeeklyScheduleModal from './components/WeeklyScheduleModal';
 import AlternativesModal from './components/SuggestAlternatives';
 import { NotificationProvider, useNotification, Notification } from './components/Notification.jsx';
+import StatusSheets from './components/StatusSheets.jsx';
 import * as api from './apiService';
 
 
 
 function AppContent() {
+  const [page, setPage] = useState('search'); // 'search' | 'statusSheets'
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
@@ -150,7 +152,44 @@ function AppContent() {
     minHeight: 0,
   };
 
+  const navStyle = {
+    display: 'flex',
+    gap: '0.5rem',
+    padding: '0.5rem 1.5rem',
+    background: '#fff',
+    borderBottom: '1px solid #E2E8F0',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+  };
+
+  const navTabStyle = (active) => ({
+    padding: '0.4rem 1rem',
+    borderRadius: '6px',
+    border: 'none',
+    background: active ? '#EFF6FF' : 'transparent',
+    color: active ? '#3B82F6' : '#64748B',
+    fontWeight: active ? 600 : 400,
+    fontSize: '0.875rem',
+    cursor: 'pointer',
+  });
+
+  if (page === 'statusSheets') {
+    return (
+      <>
+        <div style={navStyle}>
+          <button style={navTabStyle(false)} onClick={() => setPage('search')}>Course Search</button>
+          <button style={navTabStyle(true)} onClick={() => setPage('statusSheets')}>Status Sheets</button>
+        </div>
+        <StatusSheets />
+      </>
+    );
+  }
+
   return (
+    <>
+    <div style={navStyle}>
+      <button style={navTabStyle(true)} onClick={() => setPage('search')}>Course Search</button>
+      <button style={navTabStyle(false)} onClick={() => setPage('statusSheets')}>Status Sheets</button>
+    </div>
     <div style={containerStyle}>
       <div style={leftPanelStyle}>
         {/* Top-Left: Course Search */}
@@ -218,6 +257,7 @@ function AppContent() {
         />
       )}
     </div>
+    </>
   );
 }
 
