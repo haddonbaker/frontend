@@ -320,25 +320,30 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
         <button style={styles.applyButton} onClick={() => {
           const timeslotsPayload = [];
           timeslots.forEach(slot => {
-            if (slot.days.length > 0 && slot.startTime) {
-              const [startHour, startMinute] = slot.startTime.split(':').map(Number);
-              let length = 0;
-              if (slot.endTime) {
-                const [endHour, endMinute] = slot.endTime.split(':').map(Number);
-                const diff = (new Date(0,0,0,endHour,endMinute) - new Date(0,0,0,startHour,startMinute)) / 60000;
-                length = diff > 0 ? diff : 0;
-              }
-              slot.days
-                .filter(day => day && day.trim() !== '')
-                .forEach(day => {
-                  timeslotsPayload.push({
-                    day,
-                    hour: startHour,
-                    minute: startMinute,
-                    length
-                  });
-                });
+            const hasDays = slot.days.length > 0;
+            const hasStart = !!slot.startTime;
+            const hasEnd = !!slot.endTime;
+
+            // Skip completely empty slots
+            if (!hasDays && !hasStart && !hasEnd) return;
+
+            const daysToUse = hasDays ? slot.days.filter(d => d && d.trim() !== '') : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            const startHour = hasStart ? parseInt(slot.startTime.split(':')[0], 10) : 0;
+            const startMinute = hasStart ? parseInt(slot.startTime.split(':')[1], 10) : 0;
+
+            let length;
+            if (hasStart && hasEnd) {
+              const [endHour, endMinute] = slot.endTime.split(':').map(Number);
+              const diff = (new Date(0,0,0,endHour,endMinute) - new Date(0,0,0,startHour,startMinute)) / 60000;
+              length = diff > 0 ? diff : 0;
+            } else {
+              // No end time (or no times at all): span to end of day from start
+              length = (23 * 60 + 59) - (startHour * 60 + startMinute);
             }
+
+            daysToUse.forEach(day => {
+              timeslotsPayload.push({ day, hour: startHour, minute: startMinute, length });
+            });
           });
           onApply({
             departments: selectedDepartments,
