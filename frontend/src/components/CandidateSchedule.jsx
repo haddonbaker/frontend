@@ -9,7 +9,7 @@ import CourseDetailsModal from './CourseDetailsModal';
 import * as api from '../apiService';
 import { useNotification } from './Notification';
 
-function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, openModal }) {
+function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, openModal, selectedSemester, selectedYear }) {
   const [viewCourse, setViewCourse] = useState(null);
   const courses = schedule.courses || [];
   const { showNotification } = useNotification();
@@ -154,7 +154,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
       return;
     }
     try {
-      await api.saveSchedule(schedule, student);
+      await api.saveSchedule(schedule, student, selectedSemester, selectedYear);
       showNotification('Schedule saved successfully!', 'success');
     } catch (error) {
       showNotification(`Error saving schedule: ${error.message}`, 'error');

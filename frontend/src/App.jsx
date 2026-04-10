@@ -372,6 +372,8 @@ function AppContent() {
           student={student}
           onRemoveCourse={handleRemoveCourse}
           openModal={() => setShowScheduleModal(true)}
+          selectedSemester={selectedSemester}
+          selectedYear={selectedYear}
         />
       </div>
 
