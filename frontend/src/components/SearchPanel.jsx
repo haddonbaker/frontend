@@ -3,11 +3,11 @@
  * Author: Haddon Baker
  * Description: Provides the search interface for courses, including a text search input and a filter modal toggle.
  */
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import FilterModal from "./FilterModal";
 
-function SearchPanel({ onSearch = () => {} }) {
+const SearchPanel = forwardRef(function SearchPanel({ onSearch = () => {}, termSelector }, ref) {
   const [searchInput, setSearchInput] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isClosingFilters, setIsClosingFilters] = useState(false);
@@ -20,6 +20,15 @@ function SearchPanel({ onSearch = () => {} }) {
   const searchButtonRef = useRef(null);
 
   const isSearchDisabled = searchInput.trim() === "";
+
+  useImperativeHandle(ref, () => ({
+    clear() {
+      setSearchInput("");
+      setActiveFilters({});
+      setFiltersApplied(false);
+      setFiltersOpen(false);
+    },
+  }));
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -76,7 +85,10 @@ function SearchPanel({ onSearch = () => {} }) {
   return (
     <div style={styles.container}>
       <div style={styles.panel}>
-        <h2 style={styles.heading}>Search Courses</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <h2 style={{ ...styles.heading, marginBottom: 0 }}>Search Courses</h2>
+          {termSelector}
+        </div>
 
         <div style={styles.searchRow}>
           <div style={styles.inputWrapper}>
@@ -178,7 +190,7 @@ function SearchPanel({ onSearch = () => {} }) {
       )}
     </div>
   );
-}
+});
 
 const styles = {
   container: {

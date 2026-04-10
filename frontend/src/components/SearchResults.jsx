@@ -245,7 +245,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
             e.target.style.color = '#EF5350';
           }}
         >
-          Clear Results
+          Clear Search
         </button>
       </div>
       <div style={courseContainerStyle}>
