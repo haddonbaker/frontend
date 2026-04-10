@@ -122,6 +122,7 @@ function AppContent() {
     setSelectedYear(option.year);
     setSearchResults([]);
     setSearchPerformed(false);
+    searchPanelRef.current?.clear();
   };
 
   const handleSearch = async (query, filters) => {
@@ -340,7 +341,9 @@ function AppContent() {
     return (
       <div style={rootStyle}>
         <Nav activePage="statusSheets" />
-        <StatusSheets />
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <StatusSheets />
+        </div>
       </div>
     );
   }
