@@ -30,9 +30,9 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
     border: '2px solid #1976D2',
     borderRadius: '12px',
     zIndex: 1000,
-    width: '95%',
-    maxWidth: '650px',
-    maxHeight: '80vh',
+    width: '95vw',
+    maxWidth: '1100px',
+    maxHeight: '92vh',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
@@ -40,9 +40,11 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
   };
 
   const contentStyle = {
-    padding: '1.25rem',
-    overflowY: 'auto',
+    padding: '0.75rem 1.25rem 1rem',
     flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: 0,
   };
 
   const overlayStyle = {
@@ -57,19 +59,19 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
 
   const headingStyle = {
     color: '#1976D2',
-    fontSize: '1.25rem',
-    marginTop: 0,
-    marginBottom: '1rem',
+    fontSize: '1.15rem',
+    margin: 0,
   };
 
   const gridContainerStyle = {
     display: 'grid',
     gridTemplateColumns: `70px repeat(5, 1fr)`,
-    gridTemplateRows: `repeat(${hours.length}, 1fr)`, 
+    gridTemplateRows: `auto repeat(${hours.length}, minmax(40px, 1fr))`,
     textAlign: 'center',
-    marginBottom: '1rem',
     fontSize: '0.85rem',
-    height: 'calc(80vh - 100px)', 
+    flex: 1,
+    minHeight: 0,
+    overflowY: 'auto',
   };
 
   const headerCellStyle = {
@@ -79,6 +81,9 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
     color: 'white',
     padding: '0.6rem 0.4rem',
     fontSize: '0.85rem',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1,
   };
 
   const timeLabelStyle = {
@@ -128,27 +133,30 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
     };
   };
 
-  const buttonStyle = {
-    padding: '0.6rem 1.2rem',
+  const modalHeaderStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '0.5rem',
+  };
+
+  const closeButtonStyle = {
+    padding: '0.35rem 0.75rem',
     background: '#1976D2',
     color: 'white',
     border: 'none',
-    borderRadius: '8px',
-    fontSize: '0.95rem',
+    borderRadius: '6px',
+    fontSize: '0.85rem',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'background-color 0.2s',
-    alignSelf: 'flex-start',
-    marginLeft: '1.25rem',
-    marginBottom: '1.25rem',
   };
 
   const subHeadingStyle = {
-    color: '#6B7280',
-    fontSize: '0.9rem',
-    marginTop: '-0.5rem',
-    marginBottom: '1rem',
+    color: '#9CA3AF',
+    fontSize: '0.8rem',
     fontStyle: 'italic',
+    marginBottom: '0.5rem',
   };
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -249,10 +257,18 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
       <div style={overlayStyle} onClick={closeModal}></div>
       <div style={modalStyle}>
         <div style={contentStyle}>
-          <h2 style={headingStyle}>Weekly Schedule</h2>
-          <div style={subHeadingStyle}>
-          Click on any course block for more details
-        </div>
+          <div style={modalHeaderStyle}>
+            <h2 style={headingStyle}>Weekly Schedule</h2>
+            <button
+              onClick={closeModal}
+              style={closeButtonStyle}
+              onMouseEnter={(e) => e.target.style.background = '#1565C0'}
+              onMouseLeave={(e) => e.target.style.background = '#1976D2'}
+            >
+              Close
+            </button>
+          </div>
+          <div style={subHeadingStyle}>Click on any course block for more details</div>
           <div style={gridContainerStyle}>
             
             {/* Top-left empty corner */}
@@ -319,15 +335,6 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
             ))}
           </div>
         </div>
-
-        <button 
-          onClick={closeModal} 
-          style={buttonStyle}
-          onMouseEnter={(e) => e.target.style.background = '#1565C0'}
-          onMouseLeave={(e) => e.target.style.background = '#1976D2'}
-        >
-          Close
-        </button>
 
         {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} />}
       </div>

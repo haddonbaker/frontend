@@ -9,14 +9,13 @@ import CourseDetailsModal from './CourseDetailsModal';
 import * as api from '../apiService';
 import { useNotification } from './Notification';
 
-function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, openModal }) {
+function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, openModal, selectedSemester, selectedYear }) {
   const [viewCourse, setViewCourse] = useState(null);
   const courses = schedule.courses || [];
   const { showNotification } = useNotification();
   const totalCredits = schedule.totalCredits || 0;
   const panelStyle = {
-    width: '100%',
-    maxWidth: '250px',
+    width: '300px',
     padding: '1.25rem',
     background: '#FFFFFF',
     border: '1px solid #E5E7EB',
@@ -24,8 +23,11 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
     display: 'flex',
     flexDirection: 'column',
-    maxHeight: 'calc(100vh - 2rem)',
-    minHeight: '218px', // happens to be the exact height of search and results when empty 
+    flex: 1,
+    minHeight: 0,
+    boxSizing: 'border-box',
+    overflowX: 'hidden',
+    overflowY: 'hidden',
   };
 
   const headingStyle = {
@@ -66,7 +68,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
     alignItems: 'center',
     gap: '1rem',
     flex: 1,
-    flexWrap: 'wrap',
+    minWidth: 0,
   };
 
   const courseTitleStyle = {
@@ -74,15 +76,10 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
     fontWeight: '600',
     color: '#1F2937',
     margin: 0,
-    minWidth: '80px',
-  };
-
-  const compactDetailStyle = {
-    fontSize: '0.85rem',
-    color: '#555',
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'center',
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   };
 
   const removeButtonStyle = {
@@ -111,20 +108,23 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
 
   const actionButtonsStyle = {
     display: 'flex',
-    gap: '0.75rem',
+    gap: '0.5rem',
     marginBottom: '1rem',
   };
 
   const buttonStyle = {
-    padding: '0.6rem 1.2rem',
+    flex: 1,
+    padding: '0.6rem 0.5rem',
     background: '#1976D2',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
-    fontSize: '0.95rem',
+    fontSize: '0.85rem',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'background-color 0.2s, box-shadow 0.2s',
+    whiteSpace: 'nowrap',
+    textAlign: 'center',
   };
 
   const secondaryButtonStyle = {
@@ -154,7 +154,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
       return;
     }
     try {
-      await api.saveSchedule(schedule, student);
+      await api.saveSchedule(schedule, student, selectedSemester, selectedYear);
       showNotification('Schedule saved successfully!', 'success');
     } catch (error) {
       showNotification(`Error saving schedule: ${error.message}`, 'error');
@@ -180,7 +180,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
           onMouseEnter={(e) => (e.target.style.background = '#1565C0')}
           onMouseLeave={(e) => (e.target.style.background = '#1976D2')}
         >
-          View Weekly Schedule
+          View Schedule
         </button>
         <button
           onClick={handleSaveSchedule}
@@ -207,7 +207,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
                 <button style={infoButtonStyle} onClick={() => setViewCourse(course)} title="View Details">
                   <Info size={18} />
                 </button>

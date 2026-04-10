@@ -1,27 +1,26 @@
 /**
  * FilterModal.jsx
  * Author: Haddon Baker
- * Description: A modal component for filtering course search results by department, professor, credits, years, and timeslots.
+ * Description: A modal component for filtering course search results by department, professor, credits, and timeslots.
  */
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, X } from 'lucide-react';
 
 function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilters = {} }) {
   const [selectedDepartments, setSelectedDepartments] = useState(initialFilters.departments || []);
   const [selectedCredits, setSelectedCredits] = useState(initialFilters.creditHours || []);
   const [selectedProfessors, setSelectedProfessors] = useState(initialFilters.professors || []);
-  const [selectedYears, setSelectedYears] = useState(initialFilters.years || []);
   const [onlyOpenClasses, setOnlyOpenClasses] = useState(initialFilters.isAvailable !== undefined ? initialFilters.isAvailable : false);
-  
+
   const [timeslots, setTimeslots] = useState(() => {
     if (!initialFilters.timeslots || !Array.isArray(initialFilters.timeslots)) return [];
-    
+
     const uiTimeslotsMap = new Map();
     let idCounter = 1;
 
     initialFilters.timeslots.forEach(ts => {
       const timeKey = `${ts.hour}:${ts.minute}:${ts.length}`;
-      
+
       if (!uiTimeslotsMap.has(timeKey)) {
         const startTime = `${String(ts.hour).padStart(2, '0')}:${String(ts.minute).padStart(2, '0')}`;
         const totalMinutes = ts.hour * 60 + ts.minute + ts.length;
@@ -43,28 +42,22 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
   });
 
   const [nextId, setNextId] = useState(timeslots.length + 1);
-  
+
   const [deptSearch, setDeptSearch] = useState("");
   const [profSearch, setProfSearch] = useState("");
-  
+
   // Options loaded from API
   const [departments, setDepartments] = useState([]);
   const [credits, setCredits] = useState([]);
   const [professors, setProfessors] = useState([]);
-  const [years, setYears] = useState([]);
-  
+
   const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const [creditsDropdownOpen, setCreditsDropdownOpen] = useState(false);
   const [profDropdownOpen, setProfDropdownOpen] = useState(false);
-  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [openDaysDropdown, setOpenDaysDropdown] = useState(null); // Stores the id of the open dropdown
-  const [hoveredClose, setHoveredClose] = useState(false);
-  const [closeTooltipPos, setCloseTooltipPos] = useState({ x: 0, y: 0 });
-  const closeButtonRef = useRef(null);
   const deptRef = useRef(null);
   const creditsRef = useRef(null);
   const profRef = useRef(null);
-  const yearsRef = useRef(null);
   const daysRefs = useRef({});
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -73,11 +66,10 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
   useEffect(() => {
     const fetchFilterOptions = async () => {
       try {
-        const [deptRes, credRes, profRes, yearRes] = await Promise.all([
+        const [deptRes, credRes, profRes] = await Promise.all([
           fetch(`${BASEURL}/departments`),
           fetch(`${BASEURL}/credits`),
           fetch(`${BASEURL}/professors`),
-          fetch(`${BASEURL}/years`)
         ]);
 
         if (deptRes.ok) setDepartments(await deptRes.json());
@@ -86,7 +78,6 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
           const data = await profRes.json();
           setProfessors(data.filter(prof => prof && prof.trim() !== ''));
         }
-        if (yearRes.ok) setYears(await yearRes.json());
       } catch (error) {
         console.error("Failed to fetch filter options:", error);
       }
@@ -104,11 +95,11 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
   };
 
   const handleTimeslotChange = (id, field, value) => {
-    setTimeslots(timeslots.map(slot => 
+    setTimeslots(timeslots.map(slot =>
       slot.id === id ? { ...slot, [field]: value } : slot
     ));
   };
-  
+
   const toggleMultiSelectItem = (selectedItems, setSelectedItems, item) => {
     setSelectedItems(
       selectedItems.includes(item)
@@ -135,13 +126,6 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
     }));
   };
 
-  const handleCloseTooltip = () => {
-    if (closeButtonRef?.current) {
-      const rect = closeButtonRef.current.getBoundingClientRect();
-      setCloseTooltipPos({ x: rect.left + rect.width / 2, y: rect.top - 12 });
-    }
-  };
-
   const getSelectedDaysDisplay = (selectedDays) => {
     if (selectedDays.length === 0) return 'Select days...';
     if (selectedDays.length === days.length) return 'All Weekdays';
@@ -154,8 +138,7 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
       if (deptDropdownOpen && deptRef.current && !deptRef.current.contains(event.target)) setDeptDropdownOpen(false);
       if (creditsDropdownOpen && creditsRef.current && !creditsRef.current.contains(event.target)) setCreditsDropdownOpen(false);
       if (profDropdownOpen && profRef.current && !profRef.current.contains(event.target)) setProfDropdownOpen(false);
-      if (yearDropdownOpen && yearsRef.current && !yearsRef.current.contains(event.target)) setYearDropdownOpen(false);
-      
+
       if (openDaysDropdown !== null) {
         const daysRef = daysRefs.current[openDaysDropdown];
         if (daysRef && !daysRef.contains(event.target)) {
@@ -165,15 +148,19 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [deptDropdownOpen, creditsDropdownOpen, profDropdownOpen, yearDropdownOpen, openDaysDropdown]);
+  }, [deptDropdownOpen, creditsDropdownOpen, profDropdownOpen, openDaysDropdown]);
 
   return (
     <div style={{ ...styles.filtersPanel, animation: isClosing ? 'filterSlideUp 0.25s forwards' : 'filterSlideDown 0.3s forwards' }}>
-      <div style={styles.title}>Filter by...</div>
-      
+      <div style={styles.header}>
+        <span style={styles.title}>Filter by...</span>
+        <button onClick={onClose} style={styles.closeButton} aria-label="Close filters">
+          <X size={18} />
+        </button>
+      </div>
+
       <div style={styles.row}>
         <div style={styles.filterColumn}>
-          <label style={styles.label}>Department</label>
           <div style={styles.multiSelectWrapper} ref={deptRef}>
             <button onClick={() => setDeptDropdownOpen(!deptDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: deptDropdownOpen ? '#1976D2' : '#E5E7EB' }}>
               <span>{getSelectedItemsDisplay(selectedDepartments, 'All Departments')}</span>
@@ -202,7 +189,6 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
           </div>
         </div>
         <div style={styles.filterColumn}>
-          <label style={styles.label}>Professor</label>
           <div style={styles.multiSelectWrapper} ref={profRef}>
             <button onClick={() => setProfDropdownOpen(!profDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: profDropdownOpen ? '#1976D2' : '#E5E7EB' }}>
               <span>{getSelectedItemsDisplay(selectedProfessors, 'All Professors')}</span>
@@ -230,11 +216,7 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
             )}
           </div>
         </div>
-      </div>
-
-      <div style={styles.row}>
         <div style={styles.filterColumn}>
-          <label style={styles.label}>Credits</label>
           <div style={styles.multiSelectWrapper} ref={creditsRef}>
             <button onClick={() => setCreditsDropdownOpen(!creditsDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: creditsDropdownOpen ? '#1976D2' : '#E5E7EB' }}>
               <span>{getSelectedItemsDisplay(selectedCredits, 'Any Credits')}</span>
@@ -246,25 +228,6 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
                   <label key={credit} style={styles.daysCheckboxLabel}>
                     <input type="checkbox" checked={selectedCredits.includes(credit)} onChange={() => toggleMultiSelectItem(selectedCredits, setSelectedCredits, credit)} style={{ cursor: 'pointer' }} />
                     {credit}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <div style={styles.filterColumn}>
-          <label style={styles.label}>Years</label>
-          <div style={styles.multiSelectWrapper} ref={yearsRef}>
-            <button onClick={() => setYearDropdownOpen(!yearDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: yearDropdownOpen ? '#1976D2' : '#E5E7EB' }}>
-              <span>{getSelectedItemsDisplay(selectedYears, 'All Years')}</span>
-              <ChevronDown size={18} style={{ transform: yearDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
-            </button>
-            {yearDropdownOpen && (
-              <div style={styles.daysDropdown}>
-                {years.map((year) => (
-                  <label key={year} style={styles.daysCheckboxLabel}>
-                    <input type="checkbox" checked={selectedYears.includes(year)} onChange={() => toggleMultiSelectItem(selectedYears, setSelectedYears, year)} style={{ cursor: 'pointer' }} />
-                    {year}
                   </label>
                 ))}
               </div>
@@ -347,11 +310,13 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
           });
           onApply({
             departments: selectedDepartments,
-            codes: [], semesters: [], years: selectedYears,
+            codes: [],
+            semesters: [],   // injected automatically by App.jsx based on selected term
+            years: [],       // injected automatically by App.jsx based on selected term
             professors: selectedProfessors,
             timeslots: timeslotsPayload,
             creditHours: selectedCredits.map(c => parseInt(c, 10)),
-            isAvailable: onlyOpenClasses, 
+            isAvailable: onlyOpenClasses,
             prerequisites: [],
           });
         }}>
@@ -361,7 +326,6 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
             setSelectedDepartments([]);
             setSelectedCredits([]);
             setSelectedProfessors([]);
-            setSelectedYears([]);
             setOnlyOpenClasses(false);
             setTimeslots([]);
             setDeptSearch("");
@@ -370,15 +334,6 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
         }}>Reset</button>
       </div>
 
-      <button ref={closeButtonRef} onClick={onClose} onMouseEnter={(e) => { handleCloseTooltip(); setHoveredClose(true); e.target.style.color = '#1F2937'; }} onMouseLeave={(e) => { setHoveredClose(false); e.target.style.color = '#6B7280'; }} style={styles.closeButton} aria-label="Close filters">
-        <ChevronDown size={24} />
-      </button>
-
-      {hoveredClose && (
-        <div style={{ ...styles.closeTooltip, left: `${closeTooltipPos.x}px`, top: `${closeTooltipPos.y}px` }}>
-          Close
-        </div>
-      )}
     </div>
   );
 }
@@ -387,10 +342,14 @@ const styles = {
   filtersPanel: {
     width: '100%', boxSizing: 'border-box', marginTop: '0.75rem', padding: '1.25rem', border: '1px solid #E5E7EB',
     borderRadius: '12px', background: '#FFFFFF', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)', display: 'flex',
-    flexDirection: 'column', gap: '1rem', zIndex: 10, position: 'relative', paddingTop: '3rem',
+    flexDirection: 'column', gap: '0.75rem', zIndex: 10, position: 'relative',
+    maxHeight: 'calc(100vh - 220px)', overflowY: 'auto',
+  },
+  header: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   },
   title: {
-    position: 'absolute', top: '1rem', left: '1.25rem', fontSize: '1.05rem', fontWeight: '600', color: '#1F2937',
+    fontSize: '1.05rem', fontWeight: '600', color: '#1F2937',
   },
   row: { display: 'flex', gap: '1rem', width: '100%' },
   filterColumn: { flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: 0 },
@@ -449,14 +408,8 @@ const styles = {
     cursor: 'pointer', transition: 'color 0.2s',
   },
   closeButton: {
-    position: 'absolute', top: '0.85rem', right: '1.15rem', background: 'transparent', border: 'none',
-    color: '#6B7280', cursor: 'pointer', transition: 'color 0.2s', padding: '0.5rem', width: '40px',
-    height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px',
-  },
-  closeTooltip: {
-    position: 'fixed', transform: 'translate(-275%, -200%)', background: 'rgba(31, 41, 55, 0.95)',
-    color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', fontSize: '0.85rem', fontWeight: '500',
-    whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 1001, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    background: 'transparent', border: 'none', color: '#9CA3AF', cursor: 'pointer',
+    padding: '0.25rem', display: 'flex', alignItems: 'center', borderRadius: '4px', transition: 'color 0.2s',
   },
 };
 

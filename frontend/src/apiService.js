@@ -21,6 +21,11 @@ async function handleResponse(response) {
   return response.json();
 }
 
+/** Builds a query string like ?semester=Fall&year=2024 */
+function termParams(semester, year) {
+  return `?semester=${encodeURIComponent(semester)}&year=${encodeURIComponent(year)}`;
+}
+
 /**
  * Searches for courses based on a query and filters.
  * @param {string} query - The search text.
@@ -44,10 +49,12 @@ export async function searchCourses(query, filters = {}) {
  * Fetches alternative course suggestions based on a course and the current schedule.
  * @param {object} course - The course object to find alternatives for.
  * @param {object} schedule - The current schedule object.
+ * @param {string} semester - The active semester (enum name, e.g. "Fall").
+ * @param {number} year - The active year.
  * @returns {Promise<Array>} A promise that resolves to an array of alternative courses.
  */
-export async function suggestAlternatives(course, schedule) {
-  const response = await fetch(`${BASE_URL}/suggestAlternatives`, {
+export async function suggestAlternatives(course, schedule, semester, year) {
+  const response = await fetch(`${BASE_URL}/suggestAlternatives${termParams(semester, year)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -63,10 +70,12 @@ export async function suggestAlternatives(course, schedule) {
  * Saves the current candidate schedule for the student.
  * @param {object} schedule - The schedule object to save.
  * @param {object} student - The student object.
+ * @param {string} semester - The active semester.
+ * @param {number} year - The active year.
  * @returns {Promise<object>} A promise that resolves to the backend's response.
  */
-export async function saveSchedule(schedule, student) {
-  const response = await fetch(`${BASE_URL}/saveSchedule`, {
+export async function saveSchedule(schedule, student, semester, year) {
+  const response = await fetch(`${BASE_URL}/saveSchedule${termParams(semester, year)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -80,10 +89,12 @@ export async function saveSchedule(schedule, student) {
 
 /**
  * Fetches the current candidate schedule from the backend.
+ * @param {string} semester - The active semester.
+ * @param {number} year - The active year.
  * @returns {Promise<object>} A promise that resolves to the schedule object, including courses and total credits.
  */
-export async function getSchedule() {
-  const response = await fetch(`${BASE_URL}/schedule`);
+export async function getSchedule(semester, year) {
+  const response = await fetch(`${BASE_URL}/schedule${termParams(semester, year)}`);
   return handleResponse(response);
 }
 
@@ -92,10 +103,12 @@ export async function getSchedule() {
  * The backend is responsible for all logic, including conflict checks.
  * @param {object} schedule - The schedule object to add the course to.
  * @param {object} course - The course object to add.
+ * @param {string} semester - The active semester.
+ * @param {number} year - The active year.
  * @returns {Promise<object>} A promise that resolves to the backend's response (e.g., the updated schedule).
  */
-export async function addCourseToSchedule(schedule, course) {
-  const response = await fetch(`${BASE_URL}/addToCalendar`, {
+export async function addCourseToSchedule(schedule, course, semester, year) {
+  const response = await fetch(`${BASE_URL}/addToCalendar${termParams(semester, year)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -111,10 +124,12 @@ export async function addCourseToSchedule(schedule, course) {
  * Removes a course from the candidate schedule.
  * @param {object} schedule - The schedule object to remove the course from.
  * @param {object} course - The course object to remove.
+ * @param {string} semester - The active semester.
+ * @param {number} year - The active year.
  * @returns {Promise<object>} A promise that resolves to the backend's response (e.g., the updated schedule).
  */
-export async function removeCourseFromSchedule(schedule, course) {
-  const response = await fetch(`${BASE_URL}/removeFromCalendar`, {
+export async function removeCourseFromSchedule(schedule, course, semester, year) {
+  const response = await fetch(`${BASE_URL}/removeFromCalendar${termParams(semester, year)}`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
