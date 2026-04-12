@@ -162,7 +162,7 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
       <div style={styles.row}>
         <div style={styles.filterColumn}>
           <div style={styles.multiSelectWrapper} ref={deptRef}>
-            <button onClick={() => setDeptDropdownOpen(!deptDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: deptDropdownOpen ? '#1976D2' : '#E5E7EB' }}>
+            <button onClick={() => setDeptDropdownOpen(!deptDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: deptDropdownOpen ? 'var(--primary-color)' : 'var(--border-color)' }}>
               <span>{getSelectedItemsDisplay(selectedDepartments, 'All Departments')}</span>
               <ChevronDown size={18} style={{ transform: deptDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
             </button>
@@ -190,7 +190,7 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
         </div>
         <div style={styles.filterColumn}>
           <div style={styles.multiSelectWrapper} ref={profRef}>
-            <button onClick={() => setProfDropdownOpen(!profDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: profDropdownOpen ? '#1976D2' : '#E5E7EB' }}>
+            <button onClick={() => setProfDropdownOpen(!profDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: profDropdownOpen ? 'var(--primary-color)' : 'var(--border-color)' }}>
               <span>{getSelectedItemsDisplay(selectedProfessors, 'All Professors')}</span>
               <ChevronDown size={18} style={{ transform: profDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
             </button>
@@ -218,7 +218,7 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
         </div>
         <div style={styles.filterColumn}>
           <div style={styles.multiSelectWrapper} ref={creditsRef}>
-            <button onClick={() => setCreditsDropdownOpen(!creditsDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: creditsDropdownOpen ? '#1976D2' : '#E5E7EB' }}>
+            <button onClick={() => setCreditsDropdownOpen(!creditsDropdownOpen)} style={{ ...styles.multiSelectButton, borderColor: creditsDropdownOpen ? 'var(--primary-color)' : 'var(--border-color)' }}>
               <span>{getSelectedItemsDisplay(selectedCredits, 'Any Credits')}</span>
               <ChevronDown size={18} style={{ transform: creditsDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
             </button>
@@ -242,7 +242,7 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
           <div key={slot.id} style={{ ...styles.row, alignItems: 'center', gap: '0.5rem' }}>
             <div style={{ ...styles.filterColumn, flex: 2 }} ref={(el) => (daysRefs.current[slot.id] = el)}>
               <div style={styles.multiSelectWrapper}>
-                <button onClick={() => setOpenDaysDropdown(openDaysDropdown === slot.id ? null : slot.id)} style={{ ...styles.multiSelectButton, borderColor: openDaysDropdown === slot.id ? '#1976D2' : '#E5E7EB' }}>
+                <button onClick={() => setOpenDaysDropdown(openDaysDropdown === slot.id ? null : slot.id)} style={{ ...styles.multiSelectButton, borderColor: openDaysDropdown === slot.id ? 'var(--primary-color)' : 'var(--border-color)' }}>
                   <span>{getSelectedDaysDisplay(slot.days)}</span>
                   <ChevronDown size={18} style={{ transform: openDaysDropdown === slot.id ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
                 </button>
@@ -340,8 +340,8 @@ function FilterModal({ onClose, onApply, onReset, isClosing = false, initialFilt
 
 const styles = {
   filtersPanel: {
-    width: '100%', boxSizing: 'border-box', marginTop: '0.75rem', padding: '1.25rem', border: '1px solid #E5E7EB',
-    borderRadius: '12px', background: '#FFFFFF', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)', display: 'flex',
+    width: '100%', boxSizing: 'border-box', marginTop: '0.75rem', padding: '1.25rem', border: '1px solid var(--border-color)',
+    borderRadius: '12px', background: 'var(--bg-panel)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)', display: 'flex',
     flexDirection: 'column', gap: '0.75rem', zIndex: 10, position: 'relative',
     maxHeight: 'calc(100vh - 220px)', overflowY: 'auto',
   },
@@ -349,66 +349,68 @@ const styles = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   },
   title: {
-    fontSize: '1.05rem', fontWeight: '600', color: '#1F2937',
+    fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-primary)',
   },
   row: { display: 'flex', gap: '1rem', width: '100%' },
   filterColumn: { flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: 0 },
   filterRow: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  label: { fontSize: '0.95rem', fontWeight: '500', color: '#1F2937' },
+  label: { fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-primary)' },
   dropdownOption: {
     width: '100%', padding: '0.6rem 0.5rem', border: 'none', borderRadius: '4px', fontSize: '0.95rem',
     fontFamily: 'inherit', cursor: 'pointer', transition: 'background 0.2s, color 0.2s', textAlign: 'left', background: 'transparent',
   },
   multiSelectWrapper: { position: 'relative' },
   multiSelectButton: {
-    width: '100%', padding: '0.6rem', borderRadius: '6px', border: '2px solid #E5E7EB', fontSize: '0.95rem',
+    width: '100%', padding: '0.6rem', borderRadius: '6px', border: '2px solid var(--border-color)', fontSize: '0.95rem',
     fontFamily: 'inherit', cursor: 'pointer', transition: 'border 0.2s', display: 'flex',
-    justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', color: '#1F2937',
+    justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-panel)', color: 'var(--text-primary)',
   },
   daysDropdown: {
-    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '0.25rem', background: '#FFFFFF',
-    border: '2px solid #1976D2', borderRadius: '6px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '0.25rem', background: 'var(--bg-panel)',
+    border: '2px solid var(--primary-color)', borderRadius: '6px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     zIndex: 20, display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem',
     maxHeight: '200px', overflowY: 'auto',
   },
   daysCheckboxLabel: {
     display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem',
-    color: '#1F2937', cursor: 'pointer', padding: '0.4rem 0.5rem', borderRadius: '4px', transition: 'background 0.2s',
+    color: 'var(--text-primary)', cursor: 'pointer', padding: '0.4rem 0.5rem', borderRadius: '4px', transition: 'background 0.2s',
   },
   dropdownSearchContainer: {
-    position: 'sticky', top: '-0.5rem', background: 'white', zIndex: 5, paddingBottom: '0.25rem',
+    position: 'sticky', top: '-0.5rem', background: 'var(--bg-panel)', zIndex: 5, paddingBottom: '0.25rem',
     marginTop: '-0.25rem'
   },
   dropdownSearchInput: {
-    width: '100%', padding: '0.4rem', border: '1px solid #D1D5DB', borderRadius: '4px',
+    width: '100%', padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px',
     fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box',
+    background: 'var(--bg-panel)', color: 'var(--text-primary)',
   },
   timeRange: { display: 'flex', gap: '0.5rem', alignItems: 'center' },
   timeInput: {
-    flex: 1, padding: '0.6rem', borderRadius: '6px', border: '2px solid #E5E7EB',
+    flex: 1, padding: '0.6rem', borderRadius: '6px', border: '2px solid var(--border-color)',
     fontSize: '0.95rem', fontFamily: 'inherit', cursor: 'pointer',
+    background: 'var(--bg-panel)', color: 'var(--text-primary)',
   },
-  timeSeparator: { color: '#6B7280', fontSize: '0.9rem' },
+  timeSeparator: { color: 'var(--text-secondary)', fontSize: '0.9rem' },
   buttonGroup: { display: 'flex', gap: '0.75rem', marginTop: '0.5rem' },
   applyButton: {
-    flex: 1, padding: '0.75rem 1rem', background: '#1976D2', color: 'white', border: 'none',
+    flex: 1, padding: '0.75rem 1rem', background: 'var(--primary-color)', color: 'white', border: 'none',
     borderRadius: '8px', fontSize: '0.95rem', fontWeight: '500', cursor: 'pointer', transition: 'background 0.2s, box-shadow 0.2s',
   },
   resetButton: {
-    flex: 1, padding: '0.75rem 1rem', background: '#F3F4F6', color: '#1F2937',
-    border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '0.95rem', fontWeight: '500', cursor: 'pointer', transition: 'background 0.2s',
+    flex: 1, padding: '0.75rem 1rem', background: 'var(--bg-subtle)', color: 'var(--text-primary)',
+    border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.95rem', fontWeight: '500', cursor: 'pointer', transition: 'background 0.2s',
   },
   addButton: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.6rem', background: '#E0E7FF',
-    color: '#1976D2', border: 'none', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.2s',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.6rem', background: 'var(--bg-active)',
+    color: 'var(--primary-color)', border: 'none', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.2s',
     fontSize: '0.9rem', fontWeight: '500'
   },
   removeButton: {
-    padding: '0.5rem', background: 'transparent', border: 'none', color: '#9CA3AF',
+    padding: '0.5rem', background: 'transparent', border: 'none', color: 'var(--text-muted)',
     cursor: 'pointer', transition: 'color 0.2s',
   },
   closeButton: {
-    background: 'transparent', border: 'none', color: '#9CA3AF', cursor: 'pointer',
+    background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
     padding: '0.25rem', display: 'flex', alignItems: 'center', borderRadius: '4px', transition: 'color 0.2s',
   },
 };

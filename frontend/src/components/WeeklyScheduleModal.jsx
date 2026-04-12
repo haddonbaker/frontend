@@ -26,8 +26,8 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    backgroundColor: '#FFFFFF',
-    border: '2px solid #1976D2',
+    backgroundColor: 'var(--bg-panel)',
+    border: '2px solid var(--primary-color)',
     borderRadius: '12px',
     zIndex: 1000,
     width: '95vw',
@@ -58,7 +58,7 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
   };
 
   const headingStyle = {
-    color: '#1976D2',
+    color: 'var(--primary-color)',
     fontSize: '1.15rem',
     margin: 0,
   };
@@ -75,9 +75,9 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
   };
 
   const headerCellStyle = {
-    border: '1px solid #E5E7EB',
+    border: '1px solid var(--border-color)',
     fontWeight: 'bold',
-    backgroundColor: '#1976D2',
+    backgroundColor: 'var(--primary-color)',
     color: 'white',
     padding: '0.6rem 0.4rem',
     fontSize: '0.85rem',
@@ -87,23 +87,23 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
   };
 
   const timeLabelStyle = {
-    border: '1px solid #E5E7EB',
-    backgroundColor: '#F3F4F6',
-    color: '#1F2937',
+    border: '1px solid var(--border-color)',
+    backgroundColor: 'var(--bg-subtle)',
+    color: 'var(--text-primary)',
     padding: '0.6rem 0.4rem',
     fontSize: '0.8rem',
     fontWeight: '500',
   };
 
   const cellStyle = {
-    border: '1px solid #E5E7EB',
-    backgroundColor: '#FFFFFF',
+    border: '1px solid var(--border-color)',
+    backgroundColor: 'var(--bg-panel)',
     padding: '0.25rem',
     position: 'relative',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    flexGrow: 1, 
+    flexGrow: 1,
   };
 
   const courseBlockStyle = (topPercent, heightPercent, colorIndex) => {
@@ -153,7 +153,7 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
   };
 
   const subHeadingStyle = {
-    color: '#9CA3AF',
+    color: 'var(--text-muted)',
     fontSize: '0.8rem',
     fontStyle: 'italic',
     marginBottom: '0.5rem',
