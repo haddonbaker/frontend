@@ -128,7 +128,7 @@ const SearchPanel = forwardRef(function SearchPanel({ onSearch = () => {}, termS
                 onMouseLeave={() => setHoveredButton(null)}
                 style={{
                   ...styles.iconButton,
-                  backgroundColor: "#1976D2",
+                  backgroundColor: "var(--primary-color)",
                   color: "white",
                 }}
                 title="Search"
@@ -155,8 +155,8 @@ const SearchPanel = forwardRef(function SearchPanel({ onSearch = () => {}, termS
               onMouseLeave={() => setHoveredButton(null)}
               style={{
                 ...styles.iconButton,
-                backgroundColor: filtersOpen || filtersApplied ? "#E0E7FF" : "#F3F4F6",
-                color: filtersOpen || filtersApplied ? "#1976D2" : "#6B7280",
+                backgroundColor: filtersOpen || filtersApplied ? "var(--bg-active)" : "var(--bg-subtle)",
+                color: filtersOpen || filtersApplied ? "var(--primary-color)" : "var(--text-secondary)",
               }}
               title="Add filters"
               aria-label="Toggle filters"
@@ -199,13 +199,13 @@ const styles = {
   },
   panel: {
     padding: "1.25rem",
-    background: "#FFFFFF",
-    border: "1px solid #E5E7EB",
+    background: "var(--bg-panel)",
+    border: "1px solid var(--border-color)",
     borderRadius: "12px",
     boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
   },
   heading: {
-    color: "#1976D2",
+    color: "var(--primary-color)",
     fontSize: "1.2rem",
     marginTop: 0,
     marginBottom: "1rem",
@@ -222,19 +222,21 @@ const styles = {
   input: {
     width: "100%",
     padding: "0.75rem 2.5rem 0.75rem 2.5rem",
-    border: "2px solid #E5E7EB",
+    border: "2px solid var(--border-color)",
     borderRadius: "8px",
     fontSize: "1rem",
     outline: "none",
     transition: "border 0.2s, box-shadow 0.2s",
     boxSizing: "border-box",
+    background: "var(--bg-panel)",
+    color: "var(--text-primary)",
   },
   leftIcon: {
     position: "absolute",
     top: "50%",
     left: "0.75rem",
     transform: "translateY(-50%)",
-    color: "#9CA3AF",
+    color: "var(--text-muted)",
     pointerEvents: "none",
   },
   clearButton: {
@@ -245,7 +247,7 @@ const styles = {
     background: "transparent",
     border: "none",
     cursor: "pointer",
-    color: "#9CA3AF",
+    color: "var(--text-muted)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -259,7 +261,7 @@ const styles = {
     alignItems: "center",
   },
   iconButton: {
-    background: "#F3F4F6",
+    background: "var(--bg-subtle)",
     border: "none",
     borderRadius: "8px",
     padding: "0.65rem",

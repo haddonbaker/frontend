@@ -4,7 +4,29 @@
  * Description: The main application component that orchestrates the search panel, search results, candidate schedule, and modals.
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Moon, Sun } from 'lucide-react';
+
+function useDarkMode() {
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('darkMode')) ?? false;
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('darkMode', JSON.stringify(isDark));
+  }, [isDark]);
+
+  // Apply on first render too
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }, []);
+
+  return [isDark, () => setIsDark(d => !d)];
+}
 import SearchPanel from './components/SearchPanel';
 import SearchResults from './components/SearchResults.jsx';
 import CandidateSchedule from './components/CandidateSchedule.jsx';
@@ -27,6 +49,7 @@ const SEMESTER_LABELS = {
 
 
 function AppContent() {
+  const [isDark, toggleDark] = useDarkMode();
   const [page, setPage] = useState('search'); // 'search' | 'statusSheets'
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -212,7 +235,7 @@ function AppContent() {
     gap: '1.5rem',
     width: '100%',
     margin: 0,
-    background: '#F8FAFC',
+    background: 'var(--bg-page)',
     flex: 1,
     minHeight: 0,
     boxSizing: 'border-box',
@@ -246,8 +269,8 @@ function AppContent() {
     gap: '0.5rem',
     alignItems: 'center',
     padding: '0.5rem 1.5rem',
-    background: '#fff',
-    borderBottom: '1px solid #E2E8F0',
+    background: 'var(--bg-panel)',
+    borderBottom: '1px solid var(--border-subtle)',
     fontFamily: 'system-ui, -apple-system, sans-serif',
   };
 
@@ -255,8 +278,8 @@ function AppContent() {
     padding: '0.4rem 1rem',
     borderRadius: '6px',
     border: 'none',
-    background: active ? '#EFF6FF' : 'transparent',
-    color: active ? '#3B82F6' : '#64748B',
+    background: active ? 'var(--bg-active-tab)' : 'transparent',
+    color: active ? 'var(--primary-color)' : 'var(--text-secondary)',
     fontWeight: active ? 600 : 400,
     fontSize: '0.875rem',
     cursor: 'pointer',
@@ -273,9 +296,9 @@ function AppContent() {
         style={{
           padding: '0.5rem 0.75rem',
           borderRadius: '6px',
-          border: `2px solid ${termDropdownOpen ? '#1976D2' : '#E5E7EB'}`,
-          background: '#FFFFFF',
-          color: '#1F2937',
+          border: `2px solid ${termDropdownOpen ? 'var(--primary-color)' : 'var(--border-color)'}`,
+          background: 'var(--bg-panel)',
+          color: 'var(--text-primary)',
           fontSize: '0.875rem',
           fontWeight: 500,
           cursor: 'pointer',
@@ -297,10 +320,10 @@ function AppContent() {
           top: '100%',
           right: 0,
           marginTop: '0.25rem',
-          background: '#FFFFFF',
-          border: '2px solid #1976D2',
+          background: 'var(--bg-panel)',
+          border: '2px solid var(--primary-color)',
           borderRadius: '6px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
           zIndex: 20,
           minWidth: '100%',
           overflow: 'hidden',
@@ -313,8 +336,8 @@ function AppContent() {
                 width: '100%',
                 padding: '0.5rem 0.75rem',
                 border: 'none',
-                background: opt.value === selectedTermValue ? '#EFF6FF' : 'transparent',
-                color: opt.value === selectedTermValue ? '#1976D2' : '#1F2937',
+                background: opt.value === selectedTermValue ? 'var(--bg-active-tab)' : 'transparent',
+                color: opt.value === selectedTermValue ? 'var(--primary-color)' : 'var(--text-primary)',
                 fontSize: '0.875rem',
                 fontWeight: opt.value === selectedTermValue ? 600 : 400,
                 cursor: 'pointer',
@@ -334,6 +357,23 @@ function AppContent() {
     <div style={navStyle}>
       <button style={navTabStyle(activePage === 'search')} onClick={() => setPage('search')}>Course Search</button>
       <button style={navTabStyle(activePage === 'statusSheets')} onClick={() => setPage('statusSheets')}>Status Sheets</button>
+      <button
+        onClick={toggleDark}
+        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        style={{
+          marginLeft: 'auto',
+          background: 'transparent',
+          border: '1px solid var(--border-color)',
+          borderRadius: '6px',
+          padding: '0.35rem 0.6rem',
+          cursor: 'pointer',
+          color: 'var(--text-secondary)',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        {isDark ? <Sun size={16} /> : <Moon size={16} />}
+      </button>
     </div>
   );
 

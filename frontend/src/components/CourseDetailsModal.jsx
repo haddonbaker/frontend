@@ -23,7 +23,7 @@ function CourseDetailsModal({ course, onClose }) {
   };
 
   const modalStyle = {
-    backgroundColor: 'white',
+    backgroundColor: 'var(--bg-panel)',
     borderRadius: '12px',
     padding: '1.5rem',
     width: '90%',
@@ -37,13 +37,13 @@ function CourseDetailsModal({ course, onClose }) {
     justifyContent: 'space-between',
     alignItems: 'start',
     marginBottom: '1rem',
-    borderBottom: '1px solid #eee',
+    borderBottom: '1px solid var(--border-color)',
     paddingBottom: '0.5rem',
   };
 
   const titleStyle = {
     margin: 0,
-    color: '#1976D2',
+    color: 'var(--primary-color)',
     fontSize: '1.25rem',
   };
 
@@ -51,7 +51,7 @@ function CourseDetailsModal({ course, onClose }) {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    color: '#666',
+    color: 'var(--text-secondary)',
     padding: '4px',
     display: 'flex',
     alignItems: 'center',
@@ -61,11 +61,12 @@ function CourseDetailsModal({ course, onClose }) {
     marginBottom: '0.75rem',
     fontSize: '0.95rem',
     lineHeight: '1.5',
+    color: 'var(--text-primary)',
   };
 
   const labelStyle = {
     fontWeight: '600',
-    color: '#444',
+    color: 'var(--text-secondary)',
     marginRight: '0.5rem',
   };
   
@@ -137,11 +138,11 @@ function CourseDetailsModal({ course, onClose }) {
           <button style={closeButtonStyle} onClick={onClose}><X size={24} /></button>
         </div>
         
-        <div style={{marginBottom: '1rem', fontWeight: 'bold', fontSize: '1.1rem', color: '#333'}}>
+        <div style={{marginBottom: '1rem', fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--text-primary)'}}>
           {course.name}
         </div>
-        
-        {course.description && <div style={{...rowStyle, fontStyle: 'italic', color: '#555'}}>{course.description}</div>}
+
+        {course.description && <div style={{...rowStyle, fontStyle: 'italic', color: 'var(--text-secondary)'}}>{course.description}</div>}
 
         <div style={rowStyle}><span style={labelStyle}>Professor(s):</span>{course.professorNames?.join(', ') || 'TBA'}</div>
         <div style={rowStyle}><span style={labelStyle}>Section:</span>{course.section}</div>
@@ -155,7 +156,7 @@ function CourseDetailsModal({ course, onClose }) {
           {course.openSeats} / {course.maxCapacity}
           <span style={{
             marginLeft: '10px', padding: '2px 8px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold',
-            backgroundColor: course.openSeats > 0 ? '#d1fae5' : '#fee2e2', color: course.openSeats > 0 ? '#065f46' : '#991b1b'
+            backgroundColor: course.openSeats > 0 ? 'var(--success-bg)' : 'var(--error-bg)', color: course.openSeats > 0 ? 'var(--success-text)' : 'var(--error-text)'
           }}>
             {course.openSeats > 0 ? 'Open' : 'Closed'}
           </span>

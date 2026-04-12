@@ -12,12 +12,12 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
 
   const panelStyle = {
     padding: '1.25rem',
-    background: '#FFFFFF',
-    border: '1px solid #E5E7EB',
+    background: 'var(--bg-panel)',
+    border: '1px solid var(--border-color)',
     borderRadius: '12px',
     width: '100%',
     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-    boxSizing: 'border-box', // important for padding + width
+    boxSizing: 'border-box',
   };
 
   const resultsHeaderStyle = {
@@ -28,7 +28,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
   };
 
   const headingStyle = {
-    color: '#1976D2',
+    color: 'var(--primary-color)',
     fontSize: '1.25rem',
     margin: 0,
   };
@@ -41,9 +41,9 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
 
   const courseCardStyle = {
     padding: '0.75rem 1rem',
-    border: '1px solid #E5E7EB',
+    border: '1px solid var(--border-color)',
     borderRadius: '8px',
-    background: '#FAFBFC',
+    background: 'var(--bg-card)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -61,14 +61,14 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
   const courseTitleStyle = {
     fontSize: '1rem',
     fontWeight: '600',
-    color: '#1F2937',
+    color: 'var(--text-primary)',
     margin: 0,
     minWidth: '80px',
   };
 
   const compactDetailStyle = {
     fontSize: '0.85rem',
-    color: '#555',
+    color: 'var(--text-secondary)',
     display: 'flex',
     gap: '1rem',
     alignItems: 'center',
@@ -82,7 +82,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
 
   const addButtonStyle = {
     padding: '0.4rem 0.8rem',
-    background: '#1976D2',
+    background: 'var(--primary-color)',
     color: 'white',
     border: 'none',
     borderRadius: '6px',
@@ -96,7 +96,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
   const infoButtonStyle = {
     background: 'transparent',
     border: 'none',
-    color: '#6B7280',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     padding: '4px',
     display: 'flex',
@@ -116,14 +116,14 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
   };
 
   const emptyStateStyle = {
-    color: '#6B7280',
+    color: 'var(--text-secondary)',
     fontSize: '0.95rem',
     margin: 0,
   };
 
   const noResultsStyle = {
     ...emptyStateStyle,
-    color: '#DC2626', 
+    color: '#DC2626',
   };
 
   const loadingContainerStyle = {
@@ -133,7 +133,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     justifyContent: 'center',
     padding: '2rem',
     gap: '1rem',
-    color: '#6B7280',
+    color: 'var(--text-secondary)',
   };
 
   // UX for search loading state - shows a spinner and message while waiting for results

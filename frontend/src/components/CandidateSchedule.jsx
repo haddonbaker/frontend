@@ -17,8 +17,8 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
   const panelStyle = {
     width: '300px',
     padding: '1.25rem',
-    background: '#FFFFFF',
-    border: '1px solid #E5E7EB',
+    background: 'var(--bg-panel)',
+    border: '1px solid var(--border-color)',
     borderRadius: '12px',
     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
     display: 'flex',
@@ -31,14 +31,14 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
   };
 
   const headingStyle = {
-    color: '#1976D2',
+    color: 'var(--primary-color)',
     fontSize: '1.25rem',
     marginTop: 0,
     marginBottom: '0.75rem',
   };
 
   const subHeadingStyle = {
-    color: '#6B7280',
+    color: 'var(--text-secondary)',
     fontSize: '0.9rem',
     marginTop: '-0.5rem',
     marginBottom: '1rem',
@@ -54,9 +54,9 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
 
   const courseCardStyle = {
     padding: '0.75rem 1rem',
-    border: '1px solid #E5E7EB',
+    border: '1px solid var(--border-color)',
     borderRadius: '8px',
-    background: '#F0F7FF',
+    background: 'var(--bg-card-blue)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -74,7 +74,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
   const courseTitleStyle = {
     fontSize: '1rem',
     fontWeight: '600',
-    color: '#1F2937',
+    color: 'var(--text-primary)',
     margin: 0,
     minWidth: 0,
     overflow: 'hidden',
@@ -99,7 +99,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
   const infoButtonStyle = {
     background: 'transparent',
     border: 'none',
-    color: '#6B7280',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     padding: '4px',
     display: 'flex',
@@ -115,7 +115,7 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
   const buttonStyle = {
     flex: 1,
     padding: '0.6rem 0.5rem',
-    background: '#1976D2',
+    background: 'var(--primary-color)',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
@@ -129,21 +129,21 @@ function CandidateSchedule({ schedule = [], student, onRemoveCourse = () => {}, 
 
   const secondaryButtonStyle = {
     ...buttonStyle,
-    background: '#FFFFFF',
-    color: '#1976D2',
-    border: '2px solid #1976D2',
+    background: 'var(--bg-panel)',
+    color: 'var(--primary-color)',
+    border: '2px solid var(--primary-color)',
   };
 
   const disabledButtonStyle = {
     ...secondaryButtonStyle,
-    background: '#F9FAFB',
-    color: '#9CA3AF',
-    borderColor: '#D1D5DB',
+    background: 'var(--bg-subtle)',
+    color: 'var(--text-muted)',
+    borderColor: 'var(--border-color)',
     cursor: 'not-allowed',
   };
 
   const emptyStateStyle = {
-    color: '#6B7280',
+    color: 'var(--text-secondary)',
     fontSize: '0.95rem',
     margin: 0,
   };

@@ -1,25 +1,11 @@
-/* Color Palette - Designed for accessibility and future dark mode support */
-:root {
-  --primary-color: #1976D2;
-  --primary-dark: #1565C0;
-  --secondary-color: #F59E0B;
-  --accent-color: #10B981;
-  --danger-color: #EF4444;
-  
-  --bg-light: #F8FAFC;
-  --bg-white: #FFFFFF;
-  --text-primary: #1F2937;
-  --text-secondary: #6B7280;
-  --border-color: #E5E7EB;
-  --border-light: #F3F4F6;
-}
+/* Color Palette - CSS variables defined in index.css, dark mode overrides via html[data-theme="dark"] */
 
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-  background: var(--bg-light);
+  background: var(--bg-page);
   color: var(--text-primary);
   min-height: 100vh;
 }

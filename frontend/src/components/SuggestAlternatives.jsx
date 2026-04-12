@@ -52,9 +52,9 @@ function AlternativesModal({ course, alternatives, onClose, onAddCourse }) {
   // Styles matching SearchResults
   const courseCardStyle = {
     padding: '0.75rem 1rem',
-    border: '1px solid #E5E7EB',
+    border: '1px solid var(--border-color)',
     borderRadius: '8px',
-    background: '#FAFBFC',
+    background: 'var(--bg-card)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -73,14 +73,14 @@ function AlternativesModal({ course, alternatives, onClose, onAddCourse }) {
   const courseTitleStyle = {
     fontSize: '1rem',
     fontWeight: '600',
-    color: '#1F2937',
+    color: 'var(--text-primary)',
     margin: 0,
     minWidth: '80px',
   };
 
   const compactDetailStyle = {
     fontSize: '0.85rem',
-    color: '#555',
+    color: 'var(--text-secondary)',
     display: 'flex',
     gap: '1rem',
     alignItems: 'center',
@@ -94,7 +94,7 @@ function AlternativesModal({ course, alternatives, onClose, onAddCourse }) {
 
   const addButtonStyle = {
     padding: '0.4rem 0.8rem',
-    background: '#1976D2',
+    background: 'var(--primary-color)',
     color: 'white',
     border: 'none',
     borderRadius: '6px',
@@ -107,7 +107,7 @@ function AlternativesModal({ course, alternatives, onClose, onAddCourse }) {
   const infoButtonStyle = {
     background: 'transparent',
     border: 'none',
-    color: '#6B7280',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     padding: '4px',
     display: 'flex',
@@ -121,12 +121,12 @@ function AlternativesModal({ course, alternatives, onClose, onAddCourse }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <div style={{
-        backgroundColor: 'white', padding: '20px', borderRadius: '8px',
+        backgroundColor: 'var(--bg-panel)', color: 'var(--text-primary)', padding: '20px', borderRadius: '8px',
         maxWidth: '800px', width: '90%', maxHeight: '80vh', overflowY: 'auto'
       }}>
         <h3>Alternative Courses {course ? `for ${course.department} ${course.code}${course.section ? ` ${course.section}` : ''}` : ''}</h3>
         {course && (
-          <p style={{ marginTop: '-0.5rem', marginBottom: '1.5rem', color: '#555' }}>
+          <p style={{ marginTop: '-0.5rem', marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
             <strong>Original Time:</strong> {formatMeetingTimes(course.meetingTimes)}
           </p>
         )}
