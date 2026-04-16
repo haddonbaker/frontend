@@ -84,6 +84,12 @@ html[data-theme="dark"] {
   --scrollbar-track: transparent;
 }
 
+/* Suppress all transitions during theme switch to prevent color-fade lag */
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
+
 a {
   font-weight: 500;
   color: var(--primary-color);
