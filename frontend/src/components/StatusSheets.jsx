@@ -2,101 +2,23 @@
  * StatusSheets.jsx
  * Description: Displays a searchable grid of major status sheets (PDFs) that users can view or download.
  */
-import { useState, useMemo } from 'react';
-import { Search, FileText, Download, Eye, X } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Search, FileText, Download, Eye, X, Maximize2, Minimize2 } from 'lucide-react';
+import { allSheets, CATEGORIES } from '../sheetData';
 
-// Load all PDFs from the data folder as URLs
-const pdfModules = import.meta.glob('../data/2025-2026 Files/*.pdf', { query: '?url', import: 'default', eager: true });
-
-function formatDisplayName(filename) {
-  // Remove extension and trailing year suffix (_2029, _2526, etc.)
-  let name = filename.replace('.pdf', '').replace(/_\d{4}$/, '');
-  // Split by underscore into parts (major, concentration, etc.)
-  const parts = name.split('_');
-  // Insert spaces before uppercase letters preceded by lowercase (PascalCase splitting)
-  return parts.map(part => part.replace(/([a-z])([A-Z])/g, '$1 $2')).join(' · ');
-}
-
-const CATEGORY_MAP = {
-  Accounting: 'Business',
-  AppliedScienceandEngineering: 'Engineering & CS',
-  AppliedStatistics: 'Sciences & Math',
-  BiblicalandTheologicalStudies: 'Theology',
-  Biochemistry: 'Sciences & Math',
-  Biology: 'Sciences & Math',
-  BiologyHealth: 'Sciences & Math',
-  BusinessAnalysis: 'Business',
-  BusinessEconomics: 'Business',
-  BusinessStatistics: 'Business',
-  Chemistry: 'Sciences & Math',
-  CommunicationArts: 'Arts & Humanities',
-  ComputerEngineering: 'Engineering & CS',
-  ComputerProgramming: 'Engineering & CS',
-  ComputerScience: 'Engineering & CS',
-  ConservationBiology: 'Sciences & Math',
-  DataScience: 'Engineering & CS',
-  DesignandInnovation: 'Engineering & CS',
-  Economics: 'Business',
-  ElectricalEngineering: 'Engineering & CS',
-  ElementaryEduc: 'Education',
-  English: 'Arts & Humanities',
-  Entrepreneurship: 'Business',
-  ExerciseScience: 'Sciences & Math',
-  Finance: 'Business',
-  French: 'Arts & Humanities',
-  History: 'Arts & Humanities',
-  HumanResourceManagement: 'Business',
-  InternationalBusiness: 'Business',
-  Management: 'Business',
-  Marketing: 'Business',
-  Mathematics: 'Sciences & Math',
-  MechanicalEngineering: 'Engineering & CS',
-  MiddleLevel: 'Education',
-  MolecularBiology: 'Sciences & Math',
-  Music: 'Music',
-  MusicBusiness: 'Music',
-  MusicPerformance: 'Music',
-  MusicReligion: 'Music',
-  Nursing: 'Nursing',
-  Philosophy: 'Arts & Humanities',
-  Physics: 'Sciences & Math',
-  PoliticalScience: 'Social Sciences',
-  Psychology: 'Social Sciences',
-  SocialWork: 'Social Sciences',
-  Spanish: 'Arts & Humanities',
-  SpecialEducation: 'Education',
-  SpecialEducwithElementaryEduc: 'Education',
-  SupplyChainManagement: 'Business',
-  Undeclared: 'Undeclared',
-};
-
-const CATEGORIES = ['Arts & Humanities', 'Business', 'Education', 'Engineering & CS', 'Music', 'Nursing', 'Sciences & Math', 'Social Sciences', 'Theology', 'Undeclared'];
-
-function getMajorCategory(filename) {
-  const base = filename.replace('.pdf', '').split('_')[0];
-  return CATEGORY_MAP[base] || 'Other';
-}
-
-function isMajorSheet(filename) {
-  if (filename.includes('Guidelines') || filename.includes('IB ') || filename.includes('AP ') || filename.includes('CLEP') || filename.includes('Cambridge')) return false;
-  if (filename.startsWith('Minors')) return false;
-  return true;
-}
-
-// Build a sorted list of major status sheet PDFs only
-const allSheets = Object.entries(pdfModules)
-  .filter(([path]) => isMajorSheet(path.split('/').pop()))
-  .map(([path, url]) => {
-    const filename = path.split('/').pop();
-    return { filename, url, displayName: formatDisplayName(filename), category: getMajorCategory(filename) };
-  })
-  .sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-export default function StatusSheets() {
+export default function StatusSheets({ selectedSheet = '' }) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewName, setPreviewName] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const selectedCardRef = useRef(null);
+
+  useEffect(() => {
+    if (selectedSheet && selectedCardRef.current) {
+      selectedCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [selectedSheet]);
 
   const filtered = useMemo(() => {
     return allSheets.filter(sheet => {
@@ -154,7 +76,14 @@ export default function StatusSheets() {
           <div style={styles.empty}>No status sheets match your search.</div>
         ) : (
           filtered.map(sheet => (
-            <div key={sheet.filename} style={styles.card}>
+            <div
+              key={sheet.filename}
+              ref={sheet.filename === selectedSheet ? selectedCardRef : null}
+              style={{
+                ...styles.card,
+                ...(sheet.filename === selectedSheet ? styles.cardSelected : {}),
+              }}
+            >
               <FileText size={28} color="#3B82F6" style={{ flexShrink: 0, marginTop: '0.05rem' }} />
               <div style={styles.cardBody}>
                 <p style={styles.cardName}>{sheet.displayName}</p>
@@ -184,18 +113,26 @@ export default function StatusSheets() {
       {/* PDF Preview Modal */}
       {previewUrl && (
         <div style={styles.modalOverlay} onClick={() => setPreviewUrl(null)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <span style={styles.modalTitle}>{previewName}</span>
-              <div style={styles.modalActions}>
-                <a href={previewUrl} download style={styles.modalDownload}>
-                  <Download size={16} /> Download
-                </a>
-                <button style={styles.modalClose} onClick={() => setPreviewUrl(null)}>
-                  <X size={18} />
+          <div style={{ ...styles.modal, ...(isFullscreen ? styles.modalFullscreen : {}) }} onClick={e => e.stopPropagation()}>
+            {isFullscreen ? (
+              <div style={styles.fullscreenBar}>
+                <button style={styles.modalClose} onClick={() => setIsFullscreen(false)} title="Exit fullscreen">
+                  <Minimize2 size={16} />
                 </button>
               </div>
-            </div>
+            ) : (
+              <div style={styles.modalHeader}>
+                <span style={styles.modalTitle}>{previewName}</span>
+                <div style={styles.modalActions}>
+                  <button style={styles.modalClose} onClick={() => setIsFullscreen(true)} title="Fullscreen">
+                    <Maximize2 size={18} />
+                  </button>
+                  <button style={styles.modalClose} onClick={() => setPreviewUrl(null)}>
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
             <iframe
               src={previewUrl}
               style={styles.iframe}
@@ -310,6 +247,10 @@ const styles = {
     gap: '0.75rem',
     transition: 'box-shadow 0.15s',
   },
+  cardSelected: {
+    background: 'var(--bg-card-blue)',
+    border: '2px solid var(--primary-color)',
+  },
   cardBody: {
     flex: 1,
     minWidth: 0,
@@ -320,6 +261,8 @@ const styles = {
     fontWeight: 600,
     color: 'var(--text-title)',
     lineHeight: 1.4,
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
   },
   cardCategory: {
     margin: '0.15rem 0 0',
@@ -380,6 +323,19 @@ const styles = {
     flexDirection: 'column',
     overflow: 'hidden',
     boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+  },
+  modalFullscreen: {
+    width: '100vw',
+    height: '100vh',
+    borderRadius: 0,
+  },
+  fullscreenBar: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    padding: '0.2rem 0.5rem',
+    borderBottom: '1px solid var(--border-subtle)',
+    flexShrink: 0,
+    background: 'var(--bg-panel)',
   },
   modalHeader: {
     display: 'flex',

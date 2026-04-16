@@ -3,30 +3,7 @@
  * Author: Haddon Baker
  * Description: The main application component that orchestrates the search panel, search results, candidate schedule, and modals.
  */
-import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Moon, Sun } from 'lucide-react';
 
-function useDarkMode() {
-  const [isDark, setIsDark] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('darkMode')) ?? false;
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('darkMode', JSON.stringify(isDark));
-  }, [isDark]);
-
-  // Apply on first render too
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  }, []);
-
-  return [isDark, () => setIsDark(d => !d)];
-}
 import SearchPanel from './components/SearchPanel';
 import SearchResults from './components/SearchResults.jsx';
 import CandidateSchedule from './components/CandidateSchedule.jsx';
@@ -34,7 +11,10 @@ import WeeklyScheduleModal from './components/WeeklyScheduleModal';
 import AlternativesModal from './components/SuggestAlternatives';
 import { NotificationProvider, useNotification, Notification } from './components/Notification.jsx';
 import StatusSheets from './components/StatusSheets.jsx';
+import LoginPage from './components/LoginPage.jsx';
 import * as api from './apiService';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, Moon, Sun, UserCircle } from 'lucide-react';
 
 const BASE_URL = 'http://localhost:7000';
 
@@ -54,7 +34,7 @@ function AppContent() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [conflictData, setConflictData] = useState(null);
   const [alternatives, setAlternatives] = useState([]);
@@ -66,17 +46,79 @@ function AppContent() {
   const [selectedYear, setSelectedYear] = useState(null); // null until loaded
   const [termOptions, setTermOptions] = useState([]); // [{ value: "Fall_2024", label: "Fall 2024", semester: "Fall", year: 2024 }]
 
+  // authMode: 'login' | 'guest' | 'loggedIn'
+  const [authMode, setAuthMode] = useState(() => {
+    return localStorage.getItem('authMode') || 'login';
+  });
+  const [loggedInUser, setLoggedInUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('loggedInUser')); } catch { return null; }
+  });
+
+  const handleLogin = (user) => {
+    setLoggedInUser(user);
+    setAuthMode('loggedIn');
+    localStorage.setItem('authMode', 'loggedIn');
+    localStorage.setItem('loggedInUser', JSON.stringify(user));
+  };
+
+  const handleContinueAsGuest = () => {
+    setAuthMode('guest');
+    localStorage.setItem('authMode', 'guest');
+  };
+
+  const handleLogout = () => {
+    setLoggedInUser(null);
+    setAuthMode('login');
+    localStorage.removeItem('authMode');
+    localStorage.removeItem('loggedInUser');
+    setProfileOpen(false);
+  };
+
   const [student, setStudent] = useState({ id: '12345', name: 'Test Student' });
   const [error, setError] = useState(null);
   const [termDropdownOpen, setTermDropdownOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const termDropdownRef = useRef(null);
+  const profileRef = useRef(null);
   const searchPanelRef = useRef(null);
   const { showNotification } = useNotification();
 
+
+  function useDarkMode() {
+    const [isDark, setIsDark] = useState(() => {
+      try {
+        return JSON.parse(localStorage.getItem('darkMode')) ?? false;
+      } catch {
+        return false;
+      }
+    });
+
+    useEffect(() => {
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('darkMode', JSON.stringify(isDark));
+    }, [isDark]);
+
+    const toggle = () => {
+      const root = document.documentElement;
+      root.classList.add('no-transition');
+      setIsDark(d => !d);
+      // Two rAFs: first lets React flush the state + useEffect, second lets the
+      // browser apply the new styles — then we re-enable transitions.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        root.classList.remove('no-transition');
+      }));
+    };
+
+    return [isDark, toggle];
+  }
+  
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (termDropdownRef.current && !termDropdownRef.current.contains(e.target)) {
         setTermDropdownOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -123,7 +165,6 @@ function AppContent() {
   useEffect(() => {
     if (selectedYear === null) return; // wait until year is loaded
     const loadSchedule = async () => {
-      setIsLoading(true);
       setError(null);
       try {
         const schedule = await api.getSchedule(selectedSemester, selectedYear);
@@ -131,8 +172,6 @@ function AppContent() {
       } catch (err) {
         setError(err.message);
         showNotification(`Failed to load schedule: ${err.message}`, 'error');
-      } finally {
-        setIsLoading(false);
       }
     };
     loadSchedule();
@@ -157,7 +196,7 @@ function AppContent() {
     };
 
     const startTime = Date.now();
-    setIsLoading(true);
+    setIsSearchLoading(true);
     setSearchPerformed(true);
     setError(null);
     try {
@@ -170,9 +209,9 @@ function AppContent() {
       const elapsedTime = Date.now() - startTime;
       const minDelay = 500;
       if (elapsedTime < minDelay) {
-        setTimeout(() => setIsLoading(false), minDelay - elapsedTime);
+        setTimeout(() => setIsSearchLoading(false), minDelay - elapsedTime);
       } else {
-        setIsLoading(false);
+        setIsSearchLoading(false);
       }
     }
   };
@@ -206,7 +245,6 @@ function AppContent() {
 
   const handleSuggestAlternatives = async () => {
     if (!conflictData || !conflictData.course) return;
-    setIsLoading(true);
     try {
       const result = await api.suggestAlternatives(conflictData.course, candidateSchedule, selectedSemester, selectedYear);
       setAlternatives(result);
@@ -215,8 +253,6 @@ function AppContent() {
       setConflictData(null);
     } catch (error) {
       showNotification(`Failed to fetch alternatives: ${error.message}`, 'error');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -353,7 +389,7 @@ function AppContent() {
     </div>
   );
 
-  const Nav = ({ activePage }) => (
+  function renderNav(activePage) { return (
     <div style={navStyle}>
       <button style={navTabStyle(activePage === 'search')} onClick={() => setPage('search')}>Course Search</button>
       <button style={navTabStyle(activePage === 'statusSheets')} onClick={() => setPage('statusSheets')}>Status Sheets</button>
@@ -374,13 +410,121 @@ function AppContent() {
       >
         {isDark ? <Sun size={16} /> : <Moon size={16} />}
       </button>
+
+      {/* Profile icon */}
+      <div ref={profileRef} style={{ position: 'relative' }}>
+        <button
+          onClick={() => setProfileOpen(o => !o)}
+          title="Profile"
+          style={{
+            background: profileOpen ? 'var(--bg-active)' : 'transparent',
+            border: '1px solid var(--border-color)',
+            borderRadius: '6px',
+            padding: '0.35rem 0.6rem',
+            cursor: 'pointer',
+            color: authMode === 'loggedIn' ? 'var(--primary-color)' : 'var(--text-secondary)',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <UserCircle size={16} />
+        </button>
+
+        {profileOpen && (
+          <div style={{
+            position: 'absolute',
+            top: 'calc(100% + 0.4rem)',
+            right: 0,
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+            padding: '0.5rem',
+            minWidth: '180px',
+            zIndex: 30,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+          }}>
+            {authMode === 'loggedIn' ? (
+              <>
+                {/* User name header */}
+                <div style={{ padding: '0.4rem 0.6rem 0.6rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.25rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {loggedInUser?.name}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Logged in</p>
+                </div>
+                <button
+                  onClick={() => {/* teammate will implement */ setProfileOpen(false); }}
+                  style={{
+                    width: '100%',
+                    padding: '0.45rem 0.6rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  View Profile
+                </button>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    width: '100%',
+                    padding: '0.45rem 0.6rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'transparent',
+                    color: 'var(--error-text)',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => { setAuthMode('login'); setProfileOpen(false); }}
+                style={{
+                  width: '100%',
+                  padding: '0.45rem 0.6rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'var(--primary-color)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Log In
+              </button>
+            )}
+
+          </div>
+        )}
+      </div>
     </div>
-  );
+  ); }
+
+  if (authMode === 'login') {
+    return <LoginPage onLogin={handleLogin} onContinueAsGuest={handleContinueAsGuest} />;
+  }
 
   if (page === 'statusSheets') {
     return (
       <div style={rootStyle}>
-        <Nav activePage="statusSheets" />
+        {renderNav('statusSheets')}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
           <StatusSheets />
         </div>
@@ -390,7 +534,7 @@ function AppContent() {
 
   return (
     <div style={rootStyle}>
-    <Nav activePage="search" />
+    {renderNav('search')}
     <div style={containerStyle}>
       <div style={leftPanelStyle}>
         {/* Top-Left: Course Search */}
@@ -402,7 +546,7 @@ function AppContent() {
             results={searchResults}
             onAddCourse={handleAddCourse}
             searchPerformed={searchPerformed}
-            isLoading={isLoading}
+            isLoading={isSearchLoading}
             onClearResults={handleClearResults}
           />
         </div>
