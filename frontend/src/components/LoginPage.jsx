@@ -1,22 +1,58 @@
 /**
  * LoginPage.jsx
- * Description: Login page shown on app startup. Supports placeholder login form
- * and a "continue without logging in" (guest) option.
+ * Description: Login/sign-up page shown on app startup. Supports creating a new account
+ * or signing in to an existing one, plus a "continue without logging in" guest option.
  */
 
 import React, { useState } from 'react';
 import { UserCircle } from 'lucide-react';
+import * as api from '../apiService';
+import MajorSelectionModal from './MajorSelectionModal';
 
 export default function LoginPage({ onLogin, onContinueAsGuest }) {
+  const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [username, setUsername] = useState('');
-  const [major, setMajor] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  // After a successful auth, hold the user here until the popup is dismissed
+  const [pendingUser, setPendingUser] = useState(null);
 
-  const handleSubmit = (e) => {
+  const switchMode = (next) => {
+    setMode(next);
+    setError('');
+    setPassword('');
+    setConfirmPassword('');
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Placeholder — login endpoint not yet implemented
-    if (username.trim()) {
-      onLogin({ name: username.trim(), major: major.trim() || 'Undeclared' });
+    setError('');
+
+    if (!username.trim() || !password.trim()) {
+      setError('Username and password are required.');
+      return;
+    }
+    if (mode === 'signup' && password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = mode === 'login'
+        ? await api.login(username.trim(), password)
+        : await api.createAccount(username.trim(), password);
+      if (mode === 'signup') {
+        setPendingUser({ name: data.username });
+      } else {
+        onLogin({ name: data.username, major: data.major || '' });
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,11 +96,11 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
     padding: '0.65rem',
     borderRadius: '6px',
     border: 'none',
-    background: 'var(--primary-color)',
-    color: '#fff',
+    background: loading ? 'var(--bg-subtle)' : 'var(--primary-color)',
+    color: loading ? 'var(--text-muted)' : '#fff',
     fontSize: '0.9rem',
     fontWeight: 600,
-    cursor: 'pointer',
+    cursor: loading ? 'not-allowed' : 'pointer',
     fontFamily: 'inherit',
   };
 
@@ -76,6 +112,17 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
     background: 'transparent',
     color: 'var(--text-secondary)',
     fontSize: '0.85rem',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  };
+
+  const switchLinkStyle = {
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    color: 'var(--primary-color)',
+    fontWeight: 600,
+    fontSize: 'inherit',
     cursor: 'pointer',
     fontFamily: 'inherit',
   };
@@ -98,7 +145,7 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
             GCC Course Scheduler
           </h1>
           <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            Sign in to your account
+            {mode === 'login' ? 'Sign in to your account' : 'Create a new account'}
           </p>
         </div>
 
@@ -112,6 +159,7 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
               onChange={e => setUsername(e.target.value)}
               style={inputStyle}
               autoFocus
+              disabled={loading}
             />
           </label>
 
@@ -123,24 +171,47 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
               value={password}
               onChange={e => setPassword(e.target.value)}
               style={inputStyle}
+              disabled={loading}
             />
           </label>
 
-          <label style={labelStyle}>
-            Major
-            <input
-              type="text"
-              placeholder="Enter your major"
-              value={major}
-              onChange={e => setMajor(e.target.value)}
-              style={inputStyle}
-            />
-          </label>
+          {mode === 'signup' && (
+            <label style={labelStyle}>
+              Confirm Password
+              <input
+                type="password"
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                style={inputStyle}
+                disabled={loading}
+              />
+            </label>
+          )}
 
-          <button type="submit" style={primaryBtnStyle}>
-            Log In
+          {error && (
+            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--error-text)', background: 'var(--error-bg)', padding: '0.5rem 0.7rem', borderRadius: '6px' }}>
+              {error}
+            </p>
+          )}
+
+          <button type="submit" style={primaryBtnStyle} disabled={loading}>
+            {loading ? 'Please wait…' : mode === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </form>
+
+        {/* Switch between login and sign-up */}
+        <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+          {mode === 'login' ? (
+            <>Don't have an account?{' '}
+              <button style={switchLinkStyle} onClick={() => switchMode('signup')}>Sign up</button>
+            </>
+          ) : (
+            <>Already have an account?{' '}
+              <button style={switchLinkStyle} onClick={() => switchMode('login')}>Log in</button>
+            </>
+          )}
+        </p>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
@@ -148,10 +219,17 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
           <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
         </div>
 
-        <button onClick={onContinueAsGuest} style={ghostBtnStyle}>
+        <button onClick={onContinueAsGuest} style={ghostBtnStyle} disabled={loading}>
           Continue without logging in
         </button>
       </div>
+
+      {/* Major selection — shown automatically after sign-up */}
+      <MajorSelectionModal
+        isOpen={!!pendingUser}
+        onClose={() => onLogin(pendingUser, false)}
+        onSelectMajor={(major) => onLogin({ ...pendingUser, major }, true)}
+      />
     </div>
   );
 }
