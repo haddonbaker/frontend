@@ -66,7 +66,9 @@ function AppContent() {
     localStorage.setItem('authMode', 'guest');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await api.logout(); } catch { /* session may already be gone */ }
+    setCandidateSchedule({ courses: [], totalCredits: 0 });
     setLoggedInUser(null);
     setAuthMode('login');
     localStorage.removeItem('authMode');
@@ -74,7 +76,19 @@ function AppContent() {
     setProfileOpen(false);
   };
 
-  const [student, setStudent] = useState({ id: '12345', name: 'Test Student' });
+  // On first load, verify the cached username still exists on the server
+  // (guards against a deleted account or a fresh backend with no students/).
+  useEffect(() => {
+    if (authMode === 'loggedIn' && loggedInUser?.name) {
+      api.getCurrentUser(loggedInUser.name).catch(() => {
+        setLoggedInUser(null);
+        setAuthMode('login');
+        localStorage.removeItem('authMode');
+        localStorage.removeItem('loggedInUser');
+      });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [error, setError] = useState(null);
   const [termDropdownOpen, setTermDropdownOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -161,21 +175,19 @@ function AppContent() {
     fetchTermOptions();
   }, []);
 
-  // Fetch schedule whenever the selected term changes
+  // Fetch schedule whenever the selected term or logged-in user changes
   useEffect(() => {
     if (selectedYear === null) return; // wait until year is loaded
     const loadSchedule = async () => {
-      setError(null);
       try {
-        const schedule = await api.getSchedule(selectedSemester, selectedYear);
+        const schedule = await api.getSchedule(selectedSemester, selectedYear, loggedInUser?.name);
         setCandidateSchedule(schedule);
       } catch (err) {
-        setError(err.message);
         showNotification(`Failed to load schedule: ${err.message}`, 'error');
       }
     };
     loadSchedule();
-  }, [selectedSemester, selectedYear]);
+  }, [selectedSemester, selectedYear, loggedInUser?.name]);
 
   const handleTermChange = (value) => {
     const option = termOptions.find(o => o.value === value);
@@ -218,8 +230,8 @@ function AppContent() {
 
   const handleAddCourse = async (course) => {
     try {
-      await api.addCourseToSchedule(candidateSchedule, course, selectedSemester, selectedYear);
-      const updatedSchedule = await api.getSchedule(selectedSemester, selectedYear);
+      await api.addCourseToSchedule(candidateSchedule, course, selectedSemester, selectedYear, loggedInUser?.name);
+      const updatedSchedule = await api.getSchedule(selectedSemester, selectedYear, loggedInUser?.name);
       setCandidateSchedule(updatedSchedule);
     } catch (err) {
       setConflictData({ course, error: err.message });
@@ -228,12 +240,11 @@ function AppContent() {
 
   const handleRemoveCourse = async (courseToRemove) => {
     try {
-      await api.removeCourseFromSchedule(candidateSchedule, courseToRemove, selectedSemester, selectedYear);
-      const updatedSchedule = await api.getSchedule(selectedSemester, selectedYear);
+      await api.removeCourseFromSchedule(candidateSchedule, courseToRemove, selectedSemester, selectedYear, loggedInUser?.name);
+      const updatedSchedule = await api.getSchedule(selectedSemester, selectedYear, loggedInUser?.name);
       setCandidateSchedule(updatedSchedule);
     } catch (err) {
       showNotification(`Error removing course: ${err.message}`, 'error');
-      setError(err.message);
     }
   };
 
@@ -246,7 +257,7 @@ function AppContent() {
   const handleSuggestAlternatives = async () => {
     if (!conflictData || !conflictData.course) return;
     try {
-      const result = await api.suggestAlternatives(conflictData.course, candidateSchedule, selectedSemester, selectedYear);
+      const result = await api.suggestAlternatives(conflictData.course, candidateSchedule, selectedSemester, selectedYear, loggedInUser?.name);
       setAlternatives(result);
       setAlternativeSource(conflictData.course);
       setShowAlternativesModal(true);
@@ -556,7 +567,7 @@ function AppContent() {
         {/* Top-Right: Candidate Schedule */}
         <CandidateSchedule
           schedule={candidateSchedule}
-          student={student}
+          username={loggedInUser?.name}
           onRemoveCourse={handleRemoveCourse}
           openModal={() => setShowScheduleModal(true)}
           selectedSemester={selectedSemester}
