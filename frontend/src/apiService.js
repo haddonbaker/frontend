@@ -176,6 +176,21 @@ export function logout() {
 }
 
 /**
+ * Updates the student's major on the backend.
+ * @param {string} username
+ * @param {string} major
+ * @returns {Promise<{status: string, major: string}>}
+ */
+export async function updateMajor(username, major) {
+  const response = await fetch(`${BASE_URL}/updateMajor?username=${encodeURIComponent(username)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ major }),
+  });
+  return handleResponse(response);
+}
+
+/**
  * Checks whether a username exists on the server.
  * @param {string} username
  * @returns {Promise<{username: string, exists: boolean}>}

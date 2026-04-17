@@ -26,12 +26,16 @@ const findMajorSheets = (major) => {
 };
 
 export default function Profile({ user = {}, onBack = () => {}, onSelectMajor = () => {} }) {
-  const major = user.major?.trim() || 'Undeclared';
+  const savedMajor = user.major?.trim() || 'Undeclared';
   const name = user.name || 'Guest';
   const [showModal, setShowModal] = useState(false);
+  const [pendingMajor, setPendingMajor] = useState(null); // staged but not yet saved
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewName, setPreviewName] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // What we display: staged change takes priority over saved value
+  const major = pendingMajor ?? savedMajor;
 
   const majorSheets = useMemo(() => findMajorSheets(major), [major]);
   const primarySheet = majorSheets[0] || null;
@@ -74,15 +78,40 @@ export default function Profile({ user = {}, onBack = () => {}, onSelectMajor = 
         <div>
           <p style={styles.sectionLabel}>Major</p>
           <div style={styles.majorRow}>
-            <p style={styles.sectionValue}>{major}</p>
+            <p style={styles.sectionValue}>
+              {major}
+              {pendingMajor && (
+                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
+                  unsaved
+                </span>
+              )}
+            </p>
             <button
               type="button"
-              style={major.toLowerCase() === 'undeclared' ? styles.selectMajorButton : styles.changeMajorButton}
+              style={savedMajor.toLowerCase() === 'undeclared' && !pendingMajor ? styles.selectMajorButton : styles.changeMajorButton}
               onClick={() => setShowModal(true)}
             >
-              {major.toLowerCase() === 'undeclared' ? 'Select major' : 'Edit'}
+              {savedMajor.toLowerCase() === 'undeclared' && !pendingMajor ? 'Select major' : 'Change'}
             </button>
           </div>
+          {pendingMajor && (
+            <div style={styles.saveRow}>
+              <button
+                type="button"
+                style={styles.saveButton}
+                onClick={() => { onSelectMajor(pendingMajor); setPendingMajor(null); }}
+              >
+                Save changes
+              </button>
+              <button
+                type="button"
+                style={styles.discardButton}
+                onClick={() => setPendingMajor(null)}
+              >
+                Discard
+              </button>
+            </div>
+          )}
         </div>
         <div>
           <p style={styles.sectionLabel}>Status Sheet</p>
@@ -163,7 +192,7 @@ export default function Profile({ user = {}, onBack = () => {}, onSelectMajor = 
       <MajorSelectionModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onSelectMajor={onSelectMajor}
+        onSelectMajor={(m) => { setPendingMajor(m); setShowModal(false); }}
       />
     </div>
   );
@@ -375,6 +404,33 @@ const styles = {
     background: 'var(--bg-panel)',
     color: 'var(--text-secondary)',
     fontSize: '0.95rem',
+  },
+  saveRow: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginTop: '0.6rem',
+  },
+  saveButton: {
+    padding: '0.4rem 0.85rem',
+    borderRadius: '8px',
+    border: 'none',
+    background: 'var(--primary-color)',
+    color: '#fff',
+    fontWeight: 600,
+    fontSize: '0.82rem',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  },
+  discardButton: {
+    padding: '0.4rem 0.85rem',
+    borderRadius: '8px',
+    border: '1px solid var(--border-color)',
+    background: 'transparent',
+    color: 'var(--text-secondary)',
+    fontWeight: 500,
+    fontSize: '0.82rem',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
   },
   // Modal
   modalOverlay: {

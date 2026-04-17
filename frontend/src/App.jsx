@@ -55,11 +55,13 @@ function AppContent() {
     try { return JSON.parse(localStorage.getItem('loggedInUser')); } catch { return null; }
   });
 
-  const handleLogin = (user) => {
+  const handleLogin = (user, goToProfile = false) => {
     setLoggedInUser(user);
     setAuthMode('loggedIn');
     localStorage.setItem('authMode', 'loggedIn');
     localStorage.setItem('loggedInUser', JSON.stringify(user));
+    if (user.major) api.updateMajor(user.name, user.major).catch(() => {});
+    if (goToProfile) setPage('profile');
   };
 
   const handleContinueAsGuest = () => {
@@ -83,6 +85,7 @@ function AppContent() {
       const updatedUser = { ...loggedInUser, major: newMajor };
       setLoggedInUser(updatedUser);
       localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+      api.updateMajor(loggedInUser.name, newMajor).catch(() => {});
     }
   };
 
@@ -90,7 +93,12 @@ function AppContent() {
   // (guards against a deleted account or a fresh backend with no students/).
   useEffect(() => {
     if (authMode === 'loggedIn' && loggedInUser?.name) {
-      api.getCurrentUser(loggedInUser.name).catch(() => {
+      api.getCurrentUser(loggedInUser.name).then(data => {
+        // Sync major from server in case it changed since last session
+        const updatedUser = { ...loggedInUser, major: data.major || '' };
+        setLoggedInUser(updatedUser);
+        localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+      }).catch(() => {
         setLoggedInUser(null);
         setAuthMode('login');
         localStorage.removeItem('authMode');

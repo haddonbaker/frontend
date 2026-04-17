@@ -7,15 +7,17 @@
 import React, { useState } from 'react';
 import { UserCircle } from 'lucide-react';
 import * as api from '../apiService';
+import MajorSelectionModal from './MajorSelectionModal';
 
 export default function LoginPage({ onLogin, onContinueAsGuest }) {
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [username, setUsername] = useState('');
-  const [major, setMajor] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // After a successful auth, hold the user here until the popup is dismissed
+  const [pendingUser, setPendingUser] = useState(null);
 
   const switchMode = (next) => {
     setMode(next);
@@ -42,7 +44,11 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
       const data = mode === 'login'
         ? await api.login(username.trim(), password)
         : await api.createAccount(username.trim(), password);
-      onLogin({ name: data.username });
+      if (mode === 'signup') {
+        setPendingUser({ name: data.username });
+      } else {
+        onLogin({ name: data.username, major: data.major || '' });
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -169,17 +175,6 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
             />
           </label>
 
-          <label style={labelStyle}>
-            Major
-            <input
-              type="text"
-              placeholder="Enter your major"
-              value={major}
-              onChange={e => setMajor(e.target.value)}
-              style={inputStyle}
-            />
-          </label>
-
           {mode === 'signup' && (
             <label style={labelStyle}>
               Confirm Password
@@ -228,6 +223,13 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
           Continue without logging in
         </button>
       </div>
+
+      {/* Major selection — shown automatically after sign-up */}
+      <MajorSelectionModal
+        isOpen={!!pendingUser}
+        onClose={() => onLogin(pendingUser, false)}
+        onSelectMajor={(major) => onLogin({ ...pendingUser, major }, true)}
+      />
     </div>
   );
 }
