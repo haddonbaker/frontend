@@ -28,6 +28,24 @@ export default function StatusSheets({ selectedSheet = '' }) {
     });
   }, [search, activeCategory]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && previewUrl) {
+        setPreviewUrl(null);
+        setPreviewName('');
+        setIsFullscreen(false);
+      }
+    };
+
+    if (previewUrl) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [previewUrl]);
+
   return (
     <div style={styles.page}>
       {/* Header / Controls */}
