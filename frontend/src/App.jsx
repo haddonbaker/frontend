@@ -11,6 +11,7 @@ import WeeklyScheduleModal from './components/WeeklyScheduleModal';
 import AlternativesModal from './components/SuggestAlternatives';
 import { NotificationProvider, useNotification, Notification } from './components/Notification.jsx';
 import StatusSheets from './components/StatusSheets.jsx';
+import Professors from './components/Professors.jsx';
 import LoginPage from './components/LoginPage.jsx';
 import * as api from './apiService';
 import React, { useState, useEffect, useRef } from 'react';
@@ -393,6 +394,7 @@ function AppContent() {
     <div style={navStyle}>
       <button style={navTabStyle(activePage === 'search')} onClick={() => setPage('search')}>Course Search</button>
       <button style={navTabStyle(activePage === 'statusSheets')} onClick={() => setPage('statusSheets')}>Status Sheets</button>
+      <button style={navTabStyle(activePage === 'prof')} onClick={() => setPage('prof')}>Professors</button>
       <button
         onClick={toggleDark}
         title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -527,6 +529,17 @@ function AppContent() {
         {renderNav('statusSheets')}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
           <StatusSheets />
+        </div>
+      </div>
+    );
+  }
+
+  if (page === 'prof') {
+    return (
+      <div style={rootStyle}>
+        {renderNav('prof')}
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <Professors />
         </div>
       </div>
     );
