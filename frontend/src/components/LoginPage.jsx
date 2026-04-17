@@ -9,13 +9,14 @@ import { UserCircle } from 'lucide-react';
 
 export default function LoginPage({ onLogin, onContinueAsGuest }) {
   const [username, setUsername] = useState('');
+  const [major, setMajor] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Placeholder — login endpoint not yet implemented
     if (username.trim()) {
-      onLogin({ name: username.trim() });
+      onLogin({ name: username.trim(), major: major.trim() || 'Undeclared' });
     }
   };
 
@@ -121,6 +122,17 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
               placeholder="Enter your password"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              style={inputStyle}
+            />
+          </label>
+
+          <label style={labelStyle}>
+            Major
+            <input
+              type="text"
+              placeholder="Enter your major"
+              value={major}
+              onChange={e => setMajor(e.target.value)}
               style={inputStyle}
             />
           </label>
