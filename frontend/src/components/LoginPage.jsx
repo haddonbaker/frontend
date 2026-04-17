@@ -11,6 +11,7 @@ import * as api from '../apiService';
 export default function LoginPage({ onLogin, onContinueAsGuest }) {
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [username, setUsername] = useState('');
+  const [major, setMajor] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -165,6 +166,17 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
               onChange={e => setPassword(e.target.value)}
               style={inputStyle}
               disabled={loading}
+            />
+          </label>
+
+          <label style={labelStyle}>
+            Major
+            <input
+              type="text"
+              placeholder="Enter your major"
+              value={major}
+              onChange={e => setMajor(e.target.value)}
+              style={inputStyle}
             />
           </label>
 

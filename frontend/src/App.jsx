@@ -12,6 +12,7 @@ import AlternativesModal from './components/SuggestAlternatives';
 import { NotificationProvider, useNotification, Notification } from './components/Notification.jsx';
 import StatusSheets from './components/StatusSheets.jsx';
 import LoginPage from './components/LoginPage.jsx';
+import Profile from './components/Profile.jsx';
 import * as api from './apiService';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Moon, Sun, UserCircle } from 'lucide-react';
@@ -30,7 +31,7 @@ const SEMESTER_LABELS = {
 
 function AppContent() {
   const [isDark, toggleDark] = useDarkMode();
-  const [page, setPage] = useState('search'); // 'search' | 'statusSheets'
+  const [page, setPage] = useState('search'); // 'search' | 'statusSheets' | 'profile'
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
@@ -74,6 +75,15 @@ function AppContent() {
     localStorage.removeItem('authMode');
     localStorage.removeItem('loggedInUser');
     setProfileOpen(false);
+    setPage('search');
+  };
+
+  const handleSelectMajor = (newMajor) => {
+    if (loggedInUser) {
+      const updatedUser = { ...loggedInUser, major: newMajor };
+      setLoggedInUser(updatedUser);
+      localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+    }
   };
 
   // On first load, verify the cached username still exists on the server
@@ -404,6 +414,7 @@ function AppContent() {
     <div style={navStyle}>
       <button style={navTabStyle(activePage === 'search')} onClick={() => setPage('search')}>Course Search</button>
       <button style={navTabStyle(activePage === 'statusSheets')} onClick={() => setPage('statusSheets')}>Status Sheets</button>
+        <button style={navTabStyle(activePage === 'profile')} onClick={() => setPage('profile')}>Profile</button>
       <button
         onClick={toggleDark}
         title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -467,7 +478,7 @@ function AppContent() {
                   <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Logged in</p>
                 </div>
                 <button
-                  onClick={() => {/* teammate will implement */ setProfileOpen(false); }}
+                  onClick={() => { setPage('profile'); setProfileOpen(false); }}
                   style={{
                     width: '100%',
                     padding: '0.45rem 0.6rem',
@@ -538,6 +549,21 @@ function AppContent() {
         {renderNav('statusSheets')}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
           <StatusSheets />
+        </div>
+      </div>
+    );
+  }
+
+  if (page === 'profile') {
+    return (
+      <div style={rootStyle}>
+        {renderNav('profile')}
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <Profile
+            user={loggedInUser || { name: 'Guest', major: 'Undeclared' }}
+            onBack={() => setPage('search')}
+            onSelectMajor={handleSelectMajor}
+          />
         </div>
       </div>
     );
