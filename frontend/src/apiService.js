@@ -47,6 +47,23 @@ export async function searchCourses(query, filters = {}) {
   return handleResponse(response);
 }
 
+export async function searchProfessors(query = '') {
+  const qs = query ? `?query=${encodeURIComponent(query)}` : '';
+  const response = await fetch(`${BASE_URL}/professorRatingGeneral${qs}`);
+
+  if (!response.ok) {
+    const txt = await response.text().catch(() => response.statusText);
+    throw new Error(`professorRatingGeneral failed: ${response.status} ${response.statusText} - ${txt}`);
+  }
+
+  try {
+    return await response.json();
+  } catch (err) {
+    const body = await response.text().catch(() => null);
+    throw new Error(`professorRatingGeneral returned invalid JSON: ${String(body).slice(0,200)}`);
+  }
+}
+
 /**
  * Fetches alternative course suggestions based on a course and the current schedule.
  * @param {object} course - The course object to find alternatives for.

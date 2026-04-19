@@ -11,6 +11,7 @@ import WeeklyScheduleModal from './components/WeeklyScheduleModal';
 import AlternativesModal from './components/SuggestAlternatives';
 import { NotificationProvider, useNotification, Notification } from './components/Notification.jsx';
 import StatusSheets from './components/StatusSheets.jsx';
+import Professors from './components/Professors.jsx';
 import LoginPage from './components/LoginPage.jsx';
 import Profile from './components/Profile.jsx';
 import * as api from './apiService';
@@ -422,6 +423,7 @@ function AppContent() {
     <div style={navStyle}>
       <button style={navTabStyle(activePage === 'search')} onClick={() => setPage('search')}>Course Search</button>
       <button style={navTabStyle(activePage === 'statusSheets')} onClick={() => setPage('statusSheets')}>Status Sheets</button>
+      <button style={navTabStyle(activePage === 'prof')} onClick={() => setPage('prof')}>Professors</button>
         <button style={navTabStyle(activePage === 'profile')} onClick={() => setPage('profile')}>Profile</button>
       <button
         onClick={toggleDark}
@@ -562,6 +564,12 @@ function AppContent() {
     );
   }
 
+  if (page === 'prof') {
+    return (
+      <div style={rootStyle}>
+        {renderNav('prof')}
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <Professors />
   if (page === 'profile') {
     return (
       <div style={rootStyle}>
