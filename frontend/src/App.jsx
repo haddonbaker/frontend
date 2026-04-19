@@ -570,6 +570,10 @@ function AppContent() {
         {renderNav('prof')}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
           <Professors />
+        </div>
+      </div>
+    );
+  }
   if (page === 'profile') {
     return (
       <div style={rootStyle}>
