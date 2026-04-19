@@ -21,9 +21,11 @@ async function handleResponse(response) {
   return response.json();
 }
 
-/** Builds a query string like ?semester=Fall&year=2024 */
-function termParams(semester, year) {
-  return `?semester=${encodeURIComponent(semester)}&year=${encodeURIComponent(year)}`;
+/** Builds a query string like ?semester=Fall&year=2024&username=alice */
+function termParams(semester, year, username = null) {
+  let params = `?semester=${encodeURIComponent(semester)}&year=${encodeURIComponent(year)}`;
+  if (username) params += `&username=${encodeURIComponent(username)}`;
+  return params;
 }
 
 /**
@@ -70,8 +72,8 @@ export async function searchProfessors(query = '') {
  * @param {number} year - The active year.
  * @returns {Promise<Array>} A promise that resolves to an array of alternative courses.
  */
-export async function suggestAlternatives(course, schedule, semester, year) {
-  const response = await fetch(`${BASE_URL}/suggestAlternatives${termParams(semester, year)}`, {
+export async function suggestAlternatives(course, schedule, semester, year, username = null) {
+  const response = await fetch(`${BASE_URL}/suggestAlternatives${termParams(semester, year, username)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -85,20 +87,14 @@ export async function suggestAlternatives(course, schedule, semester, year) {
 
 /**
  * Saves the current candidate schedule for the student.
- * @param {object} schedule - The schedule object to save.
- * @param {object} student - The student object.
+ * @param {string} username - The logged-in student's username.
  * @param {string} semester - The active semester.
  * @param {number} year - The active year.
  * @returns {Promise<object>} A promise that resolves to the backend's response.
  */
-export async function saveSchedule(schedule, student, semester, year) {
-  const response = await fetch(`${BASE_URL}/saveSchedule${termParams(semester, year)}`, {
+export async function saveSchedule(username, semester, year) {
+  const response = await fetch(`${BASE_URL}/saveSchedule${termParams(semester, year, username)}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      schedule: schedule,
-      student: student
-    })
   });
 
   return handleResponse(response);
@@ -110,8 +106,8 @@ export async function saveSchedule(schedule, student, semester, year) {
  * @param {number} year - The active year.
  * @returns {Promise<object>} A promise that resolves to the schedule object, including courses and total credits.
  */
-export async function getSchedule(semester, year) {
-  const response = await fetch(`${BASE_URL}/schedule${termParams(semester, year)}`);
+export async function getSchedule(semester, year, username = null) {
+  const response = await fetch(`${BASE_URL}/schedule${termParams(semester, year, username)}`);
   return handleResponse(response);
 }
 
@@ -124,8 +120,8 @@ export async function getSchedule(semester, year) {
  * @param {number} year - The active year.
  * @returns {Promise<object>} A promise that resolves to the backend's response (e.g., the updated schedule).
  */
-export async function addCourseToSchedule(schedule, course, semester, year) {
-  const response = await fetch(`${BASE_URL}/addToCalendar${termParams(semester, year)}`, {
+export async function addCourseToSchedule(schedule, course, semester, year, username = null) {
+  const response = await fetch(`${BASE_URL}/addToCalendar${termParams(semester, year, username)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -145,8 +141,8 @@ export async function addCourseToSchedule(schedule, course, semester, year) {
  * @param {number} year - The active year.
  * @returns {Promise<object>} A promise that resolves to the backend's response (e.g., the updated schedule).
  */
-export async function removeCourseFromSchedule(schedule, course, semester, year) {
-  const response = await fetch(`${BASE_URL}/removeFromCalendar${termParams(semester, year)}`, {
+export async function removeCourseFromSchedule(schedule, course, semester, year, username = null) {
+  const response = await fetch(`${BASE_URL}/removeFromCalendar${termParams(semester, year, username)}`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -155,5 +151,68 @@ export async function removeCourseFromSchedule(schedule, course, semester, year)
     })
   });
 
+  return handleResponse(response);
+}
+
+/**
+ * Creates a new student account.
+ * @param {string} username
+ * @param {string} password
+ * @returns {Promise<{status: string, username: string}>}
+ */
+export async function createAccount(username, password) {
+  const response = await fetch(`${BASE_URL}/createAccount`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Logs in with the given credentials.
+ * @param {string} username
+ * @param {string} password
+ * @returns {Promise<{status: string, username: string}>}
+ */
+export async function login(username, password) {
+  const response = await fetch(`${BASE_URL}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Logs the current user out (client-side only — no server session to invalidate).
+ */
+export function logout() {
+  // No server call needed without sessions; state is cleared in the app.
+  return Promise.resolve({ status: 'success' });
+}
+
+/**
+ * Updates the student's major on the backend.
+ * @param {string} username
+ * @param {string} major
+ * @returns {Promise<{status: string, major: string}>}
+ */
+export async function updateMajor(username, major) {
+  const response = await fetch(`${BASE_URL}/updateMajor?username=${encodeURIComponent(username)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ major }),
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Checks whether a username exists on the server.
+ * @param {string} username
+ * @returns {Promise<{username: string, exists: boolean}>}
+ */
+export async function getCurrentUser(username) {
+  const response = await fetch(`${BASE_URL}/me?username=${encodeURIComponent(username)}`);
   return handleResponse(response);
 }
