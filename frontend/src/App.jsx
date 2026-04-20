@@ -17,6 +17,8 @@ import Profile from './components/Profile.jsx';
 import * as api from './apiService';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Moon, Sun, UserCircle } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import SchedulePDF from './components/SchedulePDF';
 
 const BASE_URL = 'http://localhost:7000';
 
@@ -617,6 +619,29 @@ function AppContent() {
       </div>
 
       <div style={rightPanelStyle}>
+        <PDFDownloadLink
+            document={<SchedulePDF schedule={candidateSchedule} />}
+            fileName="schedule.pdf"
+          >
+            {({ loading }) => (
+              <button
+                style={{
+                  padding: '0.6rem 1rem',
+                  background: '#1976D2',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  marginBottom: '1rem',
+                  width: '100%',
+                }}
+              >
+                {loading ? 'Generating PDF...' : 'Export Schedule PDF'}
+              </button>
+            )}
+        </PDFDownloadLink>
         {/* Top-Right: Candidate Schedule */}
         <CandidateSchedule
           schedule={candidateSchedule}
