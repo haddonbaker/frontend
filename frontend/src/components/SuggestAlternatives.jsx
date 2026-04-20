@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Info } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 
-function AlternativesModal({ course, alternatives, onClose, onAddCourse }) {
+function AlternativesModal({ course, alternatives, onClose, onAddCourse, onSearchProfessor }) {
   const [viewCourse, setViewCourse] = useState(null);
 
   // Helper function to format meeting times (copied from SearchResults for consistency)
@@ -173,7 +173,7 @@ function AlternativesModal({ course, alternatives, onClose, onAddCourse }) {
           <button onClick={onClose}>Close</button>
         </div>
       </div>
-      {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} />}
+      {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} onSearchProfessor={onSearchProfessor} />}
     </div>
   );
 }

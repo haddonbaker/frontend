@@ -9,7 +9,7 @@ import CourseDetailsModal from './CourseDetailsModal';
 import * as api from '../apiService';
 import { useNotification } from './Notification';
 
-function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => {}, openModal, selectedSemester, selectedYear }) {
+function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => {}, openModal, selectedSemester, selectedYear, onSearchProfessor }) {
   const [viewCourse, setViewCourse] = useState(null);
   const courses = schedule.courses || [];
   const { showNotification } = useNotification();
@@ -222,7 +222,7 @@ function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => {},
         <p style={emptyStateStyle}>Courses added from search results will appear here.</p>
       )}
 
-      {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} />}
+      {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} onSearchProfessor={onSearchProfessor} />}
     </div>
   );
 }

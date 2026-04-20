@@ -32,7 +32,13 @@ const SEMESTER_LABELS = {
 
 function AppContent() {
   const [isDark, toggleDark] = useDarkMode();
-  const [page, setPage] = useState('search'); // 'search' | 'statusSheets' | 'profile'
+  const [page, setPage] = useState('search'); // 'search' | 'statusSheets' | 'prof' | 'profile'
+  const [profInitialQuery, setProfInitialQuery] = useState('');
+
+  const navigateToProfessors = (name = '') => {
+    setProfInitialQuery(name);
+    setPage('prof');
+  };
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
@@ -569,7 +575,7 @@ function AppContent() {
       <div style={rootStyle}>
         {renderNav('prof')}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-          <Professors />
+          <Professors initialQuery={profInitialQuery} />
         </div>
       </div>
     );
@@ -605,6 +611,7 @@ function AppContent() {
             searchPerformed={searchPerformed}
             isLoading={isSearchLoading}
             onClearResults={handleClearResults}
+            onSearchProfessor={navigateToProfessors}
           />
         </div>
       </div>
@@ -618,6 +625,7 @@ function AppContent() {
           openModal={() => setShowScheduleModal(true)}
           selectedSemester={selectedSemester}
           selectedYear={selectedYear}
+          onSearchProfessor={navigateToProfessors}
         />
       </div>
 
@@ -626,6 +634,7 @@ function AppContent() {
         <WeeklyScheduleModal
         closeModal={() => setShowScheduleModal(false)}
         schedule={candidateSchedule}
+        onSearchProfessor={navigateToProfessors}
         />
       }
 
@@ -658,6 +667,7 @@ function AppContent() {
           course={alternativeSource}
           onClose={() => setShowAlternativesModal(false)}
           onAddCourse={handleAddCourse}
+          onSearchProfessor={navigateToProfessors}
         />
       )}
     </div>
