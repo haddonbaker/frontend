@@ -353,8 +353,9 @@ const styles = {
     fontSize: '0.9rem',
   },
   downloadButton: {
-    background: 'var(--bg-active-tab)',
+    background: 'var(--primary-color)',
     color: '#fff',
+    border: '1px solid var(--primary-color)',
   },
   grid: {
     display: 'grid',
