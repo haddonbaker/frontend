@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Info, Loader2 } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 
-function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed = false, isLoading = false, onClearResults = () => {} }) {
+function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed = false, isLoading = false, onClearResults = () => {}, onSearchProfessor }) {
   const [viewCourse, setViewCourse] = useState(null);
 
   const panelStyle = {
@@ -285,7 +285,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
           </div>
         ))}
       </div>
-      {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} />}
+      {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} onSearchProfessor={onSearchProfessor} />}
     </div>
   );
 }

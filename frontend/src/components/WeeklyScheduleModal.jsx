@@ -8,7 +8,7 @@ import * as api from '../apiService';
 import CourseDetailsModal from './CourseDetailsModal';
 import { Italic } from 'lucide-react';
 
-function WeeklyScheduleModal({ closeModal, schedule }) {
+function WeeklyScheduleModal({ closeModal, schedule, onSearchProfessor }) {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -336,7 +336,7 @@ function WeeklyScheduleModal({ closeModal, schedule }) {
           </div>
         </div>
 
-        {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} />}
+        {viewCourse && <CourseDetailsModal course={viewCourse} onClose={() => setViewCourse(null)} onSearchProfessor={onSearchProfessor} />}
       </div>
     </>
   );

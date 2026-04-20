@@ -6,8 +6,42 @@ import * as api from '../apiService';
 //The rest was written without help.
 //This is just a personal note to document my AI usage
 
-export default function Professors() {
-  const [query, setQuery] = useState('');
+// Renders partially-filled stars via CSS clip overlay for a 0–5 rating with color coding
+function StarRating({ rating }) {
+  if (rating == null) return <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>N/A</span>;
+  const r = Math.max(0, Math.min(5, parseFloat(rating)));
+  const color = r >= 4 ? 'var(--success-text)' : r >= 3 ? '#F59E0B' : 'var(--error-text)';
+  const pct = (r / 5) * 100;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}>
+      <span style={{ position: 'relative', display: 'inline-block', letterSpacing: '0.05em' }}>
+        <span style={{ color: 'var(--text-muted)' }}>☆☆☆☆☆</span>
+        <span style={{
+          position: 'absolute', top: 0, left: 0,
+          overflow: 'hidden', width: `${pct}%`,
+          color, whiteSpace: 'nowrap', letterSpacing: '0.05em',
+        }}>★★★★★</span>
+      </span>
+      <span style={{ fontSize: '0.8em', color: 'var(--text-secondary)' }}>{r.toFixed(1)}</span>
+    </span>
+  );
+}
+
+// Shows difficulty value color-coded by level
+function DifficultyBadge({ difficulty }) {
+  if (difficulty == null) return <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>N/A</span>;
+  const d = parseFloat(difficulty);
+  const color = d >= 4 ? 'var(--error-text)' : d >= 3 ? '#F59E0B' : 'var(--success-text)';
+  const label = d >= 4 ? 'Hard' : d >= 3 ? 'Moderate' : 'Easy';
+  return (
+    <span style={{ color, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+      {d.toFixed(1)} <span style={{ fontSize: '0.8em', color: 'var(--text-secondary)' }}>({label})</span>
+    </span>
+  );
+}
+
+export default function Professors({ initialQuery = '' }) {
+  const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState([]);
   const [allProfessors, setAllProfessors] = useState(null); // cached full list
   const [isLoading, setIsLoading] = useState(false);
@@ -31,9 +65,11 @@ export default function Professors() {
       let list = allProfessors;
       if (!list) {
         const res = await api.searchProfessors('');
-        list = Array.isArray(res)
+        const raw = Array.isArray(res)
           ? res
           : (Array.isArray(res.professors) ? res.professors : (Array.isArray(res.data) ? res.data : []));
+        // Filter out null entries and professors with no name (no RMP profile)
+        list = raw.filter(p => p && (p.name || p.professor) && String(p.name || p.professor).trim() !== '');
         setAllProfessors(list);
         console.debug('Fetched professors (cached):', list.length, 'items');
       }
@@ -62,9 +98,9 @@ export default function Professors() {
     await fetchProfessors(q);
   };
 
-  // Load all professors on mount
+  // Load all professors on mount (using initialQuery if provided)
   useEffect(() => {
-    fetchProfessors('');
+    fetchProfessors(initialQuery || '');
   }, []);
 
   // Debounced local filtering when typing: filter cached allProfessors using normalizeRmpName
@@ -128,7 +164,7 @@ export default function Professors() {
           <h2 style={{ margin: 0 }}>Professors</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', padding: '0.35rem 0.6rem', borderRadius: '8px', flex: 1 }}>
-              <Search size={16} color="#94A3B8" />
+              <Search size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -180,22 +216,32 @@ export default function Professors() {
                 <div style={{ color: 'var(--text-secondary)' }}>No professors available.</div>
               )
             ) : (
-              results.map((p) => (
-                <div
-                  key={p.id || p.name}
-                  onClick={() => setSelectedProfessor(p)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') setSelectedProfessor(p); }}
-                  role="button"
-                  tabIndex={0}
-                  style={{ padding: '0.75rem 1rem', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{p.department || p.dept || ''}</div>
+              results.map((p) => {
+                const rating = p.overallRating ?? p.avgRating ?? p.rating ?? null;
+                const diff = p.difficulty ?? null;
+                return (
+                  <div
+                    key={p.id || p.name}
+                    onClick={() => setSelectedProfessor(p)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setSelectedProfessor(p); }}
+                    role="button"
+                    tabIndex={0}
+                    style={{ padding: '0.75rem 1rem', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', gap: '1rem' }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{p.department || p.dept || ''}</div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem', flexShrink: 0 }}>
+                      <StarRating rating={rating} />
+                      <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Difficulty:</span>
+                        <DifficultyBadge difficulty={diff} />
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{p.title || p.overallRating || ''}</div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
@@ -235,9 +281,15 @@ export default function Professors() {
               {/* LEFT: rating, tags, number of ratings, department */}
               <div style={{ flex: '0 0 38%', minWidth: 240 }}>
                 <div style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>{selectedProfessor.department || selectedProfessor.dept || ''}</div>
-                <div style={{ marginBottom: '0.5rem' }}><strong>Overall Rating:</strong> <span style={{ color: 'var(--primary-color)', marginLeft: '0.4rem' }}>{selectedProfessor.overallRating ?? selectedProfessor.avgRating ?? selectedProfessor.rating ?? 'N/A'}</span></div>
+                <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <strong>Overall Rating:</strong>
+                  <StarRating rating={selectedProfessor.overallRating ?? selectedProfessor.avgRating ?? selectedProfessor.rating ?? null} />
+                </div>
                 <div style={{ marginBottom: '0.5rem' }}><strong>Ratings:</strong> <span style={{ marginLeft: '0.4rem' }}>{selectedProfessor.ratingsCount ?? selectedProfessor.numRatings ?? selectedProfessor.num_ratings ?? 'N/A'}</span></div>
-                <div style={{ marginBottom: '0.5rem' }}><strong>Difficulty:</strong> <span style={{ marginLeft: '0.4rem' }}>{selectedProfessor.difficulty ?? 'N/A'}</span></div>
+                <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <strong>Difficulty:</strong>
+                  <DifficultyBadge difficulty={selectedProfessor.difficulty ?? null} />
+                </div>
 
                 {/* Tags */}
                 {(() => {
@@ -316,7 +368,7 @@ export default function Professors() {
                   if (list.length === 0) return <div style={{ color: 'var(--text-secondary)' }}>No reviews available.</div>;
 
                   return list.map((c, i) => (
-                    <div key={i} style={{ marginBottom: '0.75rem', padding: '0.6rem', borderRadius: '6px', background: 'white', boxShadow: '0 1px 0 rgba(0,0,0,0.04)' }}>
+                    <div key={i} style={{ marginBottom: '0.75rem', padding: '0.6rem', borderRadius: '6px', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', boxShadow: '0 1px 0 rgba(0,0,0,0.04)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{c.course || ''}</div>
                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

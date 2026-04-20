@@ -4,9 +4,21 @@
  * Description: A modal displaying detailed information about a specific course.
  */
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Search } from 'lucide-react';
 
-function CourseDetailsModal({ course, onClose }) {
+// Mirrors ProfessorDB.normalizeCourseDataName on the backend.
+// Converts "Last, First M." (course catalog format) → "First Last"
+// so it matches the RMP "First Last" names in the professors list.
+function courseNameToRmpFormat(name) {
+  if (!name) return name;
+  const commaIdx = name.indexOf(',');
+  if (commaIdx === -1) return name; // already "First Last" or unknown format
+  const last = name.slice(0, commaIdx).trim();
+  const firstToken = name.slice(commaIdx + 1).trim().split(/\s+/)[0]; // drop middle initial
+  return firstToken && last ? `${firstToken} ${last}` : name;
+}
+
+function CourseDetailsModal({ course, onClose, onSearchProfessor }) {
   if (!course) return null;
 
   const overlayStyle = {
@@ -144,7 +156,28 @@ function CourseDetailsModal({ course, onClose }) {
 
         {course.description && <div style={{...rowStyle, fontStyle: 'italic', color: 'var(--text-secondary)'}}>{course.description}</div>}
 
-        <div style={rowStyle}><span style={labelStyle}>Professor(s):</span>{course.professorNames?.join(', ') || 'TBA'}</div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>Professor(s):</span>
+          {course.professorNames && course.professorNames.length > 0 ? (
+            <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {course.professorNames.map((name, i) => (
+                <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                  {name}
+                  {onSearchProfessor && (
+                    <button
+                      title={`Search for ${name} in Professors tab`}
+                      onClick={() => { onClose(); onSearchProfessor(courseNameToRmpFormat(name)); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px', color: 'var(--primary-color)', display: 'inline-flex', alignItems: 'center' }}
+                    >
+                      <Search size={13} />
+                    </button>
+                  )}
+                  {i < course.professorNames.length - 1 && <span>,</span>}
+                </span>
+              ))}
+            </span>
+          ) : 'TBA'}
+        </div>
         <div style={rowStyle}><span style={labelStyle}>Section:</span>{course.section}</div>
         <div style={rowStyle}><span style={labelStyle}>Credits:</span>{course.credits}</div>
         <div style={rowStyle}><span style={labelStyle}>Schedule:</span>{formatMeetingTimes(course.meetingTimes)}</div>
