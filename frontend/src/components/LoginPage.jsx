@@ -4,7 +4,7 @@
  * or signing in to an existing one, plus a "continue without logging in" guest option.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { UserCircle } from 'lucide-react';
 import * as api from '../apiService';
 import MajorSelectionModal from './MajorSelectionModal';
@@ -16,6 +16,7 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const majorSelectedRef = useRef(false);
   // After a successful auth, hold the user here until the popup is dismissed
   const [pendingUser, setPendingUser] = useState(null);
 
@@ -227,8 +228,8 @@ export default function LoginPage({ onLogin, onContinueAsGuest }) {
       {/* Major selection — shown automatically after sign-up */}
       <MajorSelectionModal
         isOpen={!!pendingUser}
-        onClose={() => onLogin(pendingUser, false)}
-        onSelectMajor={(major) => onLogin({ ...pendingUser, major }, true)}
+        onClose={() => { if (!majorSelectedRef.current) onLogin(pendingUser, false); majorSelectedRef.current = false; }}
+        onSelectMajor={(major) => { majorSelectedRef.current = true; onLogin({ ...pendingUser, major }, true); }}
       />
     </div>
   );
