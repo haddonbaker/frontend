@@ -155,6 +155,46 @@ export async function removeCourseFromSchedule(schedule, course, semester, year,
 }
 
 /**
+ * Undoes the most recent edit to the user schedule
+ * @param {object} schedule 
+ * @param {string} semester 
+ * @param {number} selectedYear 
+ * @param {string} username 
+ */
+export async function undoAction(schedule, semester, year, username)
+{
+  const response = await fetch(`${BASE_URL}/undo${termParams(semester, year, username)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      schedule: schedule,
+    })
+  });
+
+  return handleResponse(response);
+}
+
+/**
+ * Redoes the most recent edit to the user schedule
+ * @param {object} schedule 
+ * @param {string} semester 
+ * @param {number} selectedYear 
+ * @param {string} username 
+ */
+export async function redoAction(schedule, semester, year, username)
+{
+  const response = await fetch(`${BASE_URL}/redo${termParams(semester, year, username)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      schedule: schedule,
+    })
+  });
+
+  return handleResponse(response);
+}
+
+/**
  * Creates a new student account.
  * @param {string} username
  * @param {string} password
@@ -203,6 +243,31 @@ export async function updateMajor(username, major) {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ major }),
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Gets the display name for a user.
+ * @param {string} username
+ * @returns {Promise<{displayName: string}>}
+ */
+export async function getDisplayName(username) {
+  const response = await fetch(`${BASE_URL}/getDisplayName?username=${encodeURIComponent(username)}`);
+  return handleResponse(response);
+}
+
+/**
+ * Updates the display name for a user.
+ * @param {string} username
+ * @param {string} displayName
+ * @returns {Promise<{status: string, displayName: string}>}
+ */
+export async function updateDisplayName(username, displayName) {
+  const response = await fetch(`${BASE_URL}/updateDisplayName?username=${encodeURIComponent(username)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ displayName }),
   });
   return handleResponse(response);
 }

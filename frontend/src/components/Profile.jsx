@@ -7,6 +7,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { allSheets } from '../sheetData';
 import { FileText, Download, Eye, ArrowLeft, X, Maximize2, Minimize2 } from 'lucide-react';
 import MajorSelectionModal from './MajorSelectionModal';
+import EditDisplayNameModal from './EditDisplayNameModal';
 
 const normalizeMajor = (value) => {
   return String(value || '')
@@ -25,10 +26,12 @@ const findMajorSheets = (major) => {
   });
 };
 
-export default function Profile({ user = {}, onBack = () => {}, onSelectMajor = () => {} }) {
+export default function Profile({ user = {}, onBack = () => { }, onSelectMajor = () => { }, onUpdateDisplayName = () => { } }) {
   const savedMajor = user.major?.trim() || 'Undeclared';
   const name = user.name || 'Guest';
+  const displayName = user.displayName || name; // fallback to name if no display name
   const [showModal, setShowModal] = useState(false);
+  const [showDisplayNameModal, setShowDisplayNameModal] = useState(false);
   const [pendingMajor, setPendingMajor] = useState(null); // staged but not yet saved
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewName, setPreviewName] = useState('');
@@ -65,15 +68,28 @@ export default function Profile({ user = {}, onBack = () => {}, onSelectMajor = 
           <ArrowLeft size={16} /> Back
         </button>
         <div>
-          <h1 style={styles.title}>Your student profile</h1>
-          <p style={styles.subtitle}>A quick view of your user details and your major status sheet.</p>
+          <h1 style={styles.title}>Your Profile</h1>
+          <p style={styles.subtitle}>Overview of your user details and your major status sheet.</p>
         </div>
       </div>
 
       <section style={styles.profileCard}>
         <div>
-          <p style={styles.sectionLabel}>Name</p>
+          <p style={styles.sectionLabel}>Username</p>
           <p style={styles.sectionValue}>{name}</p>
+        </div>
+        <div>
+          <p style={styles.sectionLabel}>Display Name</p>
+          <div style={styles.majorRow}>
+            <p style={styles.sectionValue}>{displayName}</p>
+            <button
+              type="button"
+              style={styles.changeMajorButton}
+              onClick={() => setShowDisplayNameModal(true)}
+            >
+              Edit
+            </button>
+          </div>
         </div>
         <div>
           <p style={styles.sectionLabel}>Major</p>
@@ -122,9 +138,9 @@ export default function Profile({ user = {}, onBack = () => {}, onSelectMajor = 
       <section style={styles.sheetSection}>
         <div style={styles.sectionHeader}>
           <div>
-            <h2 style={styles.sectionTitle}>Your Major Status Sheet</h2>
+            <h2 style={styles.sectionTitle}>Your Status Sheet</h2>
             <p style={styles.sectionDescription}>
-              These are the most relevant documents for your declared major.
+              Lists the courses and requirements for your major.
             </p>
           </div>
         </div>
@@ -155,6 +171,16 @@ export default function Profile({ user = {}, onBack = () => {}, onSelectMajor = 
             <p style={{ margin: 0 }}>We couldn't find a status sheet for this major. Try updating your major or browse all status sheets.</p>
           </div>
         )}
+      </section>
+      <section>
+        <div style={styles.sectionHeader}>
+          <div>
+            <h2 style={styles.sectionTitle}>Add Completed Courses</h2>
+            <p style={styles.sectionDescription}>
+              Indicate courses you have previously taken here. Completed courses will not be shown in search results.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* PDF Preview Modal */}
@@ -193,6 +219,12 @@ export default function Profile({ user = {}, onBack = () => {}, onSelectMajor = 
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onSelectMajor={(m) => { setPendingMajor(m); setShowModal(false); }}
+      />
+      <EditDisplayNameModal
+        isOpen={showDisplayNameModal}
+        onClose={() => setShowDisplayNameModal(false)}
+        currentDisplayName={displayName}
+        onUpdateDisplayName={onUpdateDisplayName}
       />
     </div>
   );
