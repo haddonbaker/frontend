@@ -92,6 +92,9 @@ function AppContent() {
   };
 
   const handleLogout = async () => {
+    if (loggedInUser?.name && selectedYear !== null) {
+      try { await api.saveSchedule(loggedInUser.name, selectedSemester, selectedYear); } catch { /* ignore */ }
+    }
     try { await api.logout(); } catch { /* session may already be gone */ }
     setCandidateSchedule({ courses: [], totalCredits: 0 });
     setLoggedInUser(null);
@@ -137,6 +140,18 @@ function AppContent() {
       });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save on window/tab close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (loggedInUser?.name && selectedYear !== null) {
+        const url = `${BASE_URL}/saveSchedule?semester=${encodeURIComponent(selectedSemester)}&year=${encodeURIComponent(selectedYear)}&username=${encodeURIComponent(loggedInUser.name)}`;
+        navigator.sendBeacon(url);
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [loggedInUser, selectedSemester, selectedYear]);
 
   const [error, setError] = useState(null);
   const [termDropdownOpen, setTermDropdownOpen] = useState(false);
