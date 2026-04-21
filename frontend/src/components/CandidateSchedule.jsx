@@ -4,12 +4,13 @@
  * Description: Displays the list of selected courses for the candidate schedule, allows removing courses, viewing details, and saving.
  */
 import React, { useState } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Undo, Redo } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 import * as api from '../apiService';
 import { useNotification } from './Notification';
 
-function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => {}, openModal, selectedSemester, selectedYear, onSearchProfessor }) {
+function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => { }, 
+  openModal, selectedSemester, selectedYear, onSearchProfessor, candidateSchedule, setCandidateSchedule, loggedInUser }) {
   const [viewCourse, setViewCourse] = useState(null);
   const courses = schedule.courses || [];
   const { showNotification } = useNotification();
@@ -108,6 +109,7 @@ function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => {},
 
   const actionButtonsStyle = {
     display: 'flex',
+    flexWrap: 'wrap',
     gap: '0.5rem',
     marginBottom: '1rem',
   };
@@ -161,9 +163,31 @@ function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => {},
     }
   };
 
+  const handleUndo = async () => {
+    //try {
+    await api.undoAction(candidateSchedule, selectedSemester, selectedYear, loggedInUser?.name);
+    const updatedSchedule = await api.getSchedule(selectedSemester, selectedYear, loggedInUser?.name);
+    setCandidateSchedule(updatedSchedule);
+    //showNotification("Undo successful!");
+    //} catch (err) {
+    //showNotification("Error undoing change to current schedule");
+    //}
+  };
+
+  const handleRedo = async () => {
+    //try {
+    await api.redoAction(candidateSchedule, selectedSemester, selectedYear, loggedInUser?.name);
+    const updatedSchedule = await api.getSchedule(selectedSemester, selectedYear, loggedInUser?.name);
+    setCandidateSchedule(updatedSchedule);
+    //showNotification("Redo successful!");
+    //} catch (err) {
+    //showNotification("Error redoing change to current schedule");
+    //}
+  };
+
   const isScheduleEmpty = courses.length === 0;
 
-  
+
   return (
     <div style={panelStyle}>
       <h2 style={headingStyle}>Candidate Schedule</h2>
@@ -194,6 +218,20 @@ function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => {},
           }}
         >
           Save Schedule
+        </button>
+        <button
+          onClick={handleUndo}
+          style={secondaryButtonStyle}
+          title="Undo"
+        >
+          <Undo size={16} />
+        </button>
+        <button
+          onClick={handleRedo}
+          style={secondaryButtonStyle}
+          title="Redo"
+        >
+          <Redo size={16} />
         </button>
       </div>
 

@@ -18,7 +18,7 @@ import * as api from './apiService';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Moon, Sun, UserCircle } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import SchedulePDF from './components/SchedulePDF';
+import SchedulePDF from './components/schedulePDF';
 
 const BASE_URL = 'http://localhost:7000';
 
@@ -64,12 +64,25 @@ function AppContent() {
     try { return JSON.parse(localStorage.getItem('loggedInUser')); } catch { return null; }
   });
 
-  const handleLogin = (user, goToProfile = false) => {
+  const handleLogin = async (user, goToProfile = false) => {
     setLoggedInUser(user);
     setAuthMode('loggedIn');
     localStorage.setItem('authMode', 'loggedIn');
     localStorage.setItem('loggedInUser', JSON.stringify(user));
     if (user.major) api.updateMajor(user.name, user.major).catch(() => {});
+
+    // Load display name from backend
+    try {
+      const displayNameData = await api.getDisplayName(user.name);
+      if (displayNameData.displayName) {
+        const updatedUser = { ...user, displayName: displayNameData.displayName };
+        setLoggedInUser(updatedUser);
+        localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      // Display name not set yet, that's okay
+    }
+
     if (goToProfile) setPage('profile');
   };
 
@@ -95,6 +108,15 @@ function AppContent() {
       setLoggedInUser(updatedUser);
       localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
       api.updateMajor(loggedInUser.name, newMajor).catch(() => {});
+    }
+  };
+
+  const handleUpdateDisplayName = (newDisplayName) => {
+    if (loggedInUser) {
+      const updatedUser = { ...loggedInUser, displayName: newDisplayName };
+      setLoggedInUser(updatedUser);
+      localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+      api.updateDisplayName(loggedInUser.name, newDisplayName).catch(() => {});
     }
   };
 
@@ -591,6 +613,7 @@ function AppContent() {
             user={loggedInUser || { name: 'Guest', major: 'Undeclared' }}
             onBack={() => setPage('search')}
             onSelectMajor={handleSelectMajor}
+            onUpdateDisplayName={handleUpdateDisplayName}
           />
         </div>
       </div>
@@ -651,6 +674,9 @@ function AppContent() {
           selectedSemester={selectedSemester}
           selectedYear={selectedYear}
           onSearchProfessor={navigateToProfessors}
+          candidateSchedule={candidateSchedule}
+          setCandidateSchedule={setCandidateSchedule}
+          loggedInUser={loggedInUser}
         />
       </div>
 
