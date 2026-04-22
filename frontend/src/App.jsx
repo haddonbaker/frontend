@@ -17,7 +17,7 @@ import Profile from './components/Profile.jsx';
 import * as api from './apiService';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Moon, Sun, UserCircle } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
 import SchedulePDF from './components/schedulePDF';
 
 const BASE_URL = 'http://localhost:7000';
