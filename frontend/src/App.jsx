@@ -253,6 +253,22 @@ function AppContent() {
     loadSchedule();
   }, [selectedSemester, selectedYear, loggedInUser?.name]);
 
+    const [hasWarnedCredits, setHasWarnedCredits] = useState(false);
+
+    useEffect(() => {
+      if (candidateSchedule.totalCredits > 18 && !hasWarnedCredits) {
+        showNotification(
+          `You are over the 18 credit limit (${candidateSchedule.totalCredits} credits).`,
+          'error' // use 'error' to guarantee it shows
+        );
+        setHasWarnedCredits(true);
+      }
+
+      if (candidateSchedule.totalCredits <= 18) {
+        setHasWarnedCredits(false);
+      }
+    }, [candidateSchedule.totalCredits, hasWarnedCredits]);
+
   const handleTermChange = (value) => {
     const option = termOptions.find(o => o.value === value);
     if (!option) return;
