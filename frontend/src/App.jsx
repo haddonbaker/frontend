@@ -713,7 +713,7 @@ function AppContent() {
             onClick={handleSendToAdvisor}
             style={{
               padding: '0.6rem 1rem',
-              background: '#2E7D32',
+              background: '#1976D2',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
