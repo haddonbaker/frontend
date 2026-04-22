@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import * as api from '../apiService';
 
@@ -47,6 +47,31 @@ export default function Professors({ initialQuery = '' }) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [error, setError] = useState(null);
+  const [activeDepartment, setActiveDepartment] = useState('All');
+
+  const normalizeDept = (d) => {
+    if (!d) return '';
+    return String(d).trim();
+  };
+
+    //This method should only be used when allProfessors changes to avoid being run a lot more
+    // than necesary
+  const departments = useMemo(() => {
+    if (!allProfessors) return [];
+    const counts = {};
+    //iterates through all professors
+    //and extracts the department associated with them
+    allProfessors.forEach(p => {
+      const d = normalizeDept(p.department || p.dept || '');
+      //at the moment I don't want to fuss with things like
+      // & being the same as and as well as other stuff like that
+      if (!d) return;
+      //counts the number of times that department has been seen before
+      counts[d] = (counts[d] || 0) + 1;
+    });
+
+    return Object.keys(counts).sort((a,b) => a.localeCompare(b)).map(k => ({ name: k, count: counts[k] }));
+  }, [allProfessors]);
 
   // Normalize like ProfessorDB.normalizeRmpName: trim -> toLowerCase
   const normalizeRmpName = (name) => {
@@ -75,15 +100,20 @@ export default function Professors({ initialQuery = '' }) {
       }
 
       const qNorm = normalizeRmpName(q || '');
+      let out = null;
       if (!qNorm) {
-        setResults(list);
+        out = list;
       } else {
-        const filtered = list.filter((p) => {
+        out = list.filter((p) => {
           const n = normalizeRmpName(p?.name || p?.professor || '');
           return n.includes(qNorm);
         });
-        setResults(filtered);
       }
+  //checks to see if there is a department that the user wants to filter by
+      if (activeDepartment && activeDepartment !== 'All') {
+        out = out.filter(p => normalizeDept(p.department || p.dept || '') === activeDepartment);
+      }
+      setResults(out);
     } catch (err) {
       console.error('Failed to fetch professors', err);
       setError(err.message || String(err));
@@ -122,7 +152,10 @@ export default function Professors({ initialQuery = '' }) {
       // If we have cached list, filter locally using normalizeRmpName
       if (allProfessors) {
         const qNorm = normalizeRmpName(q);
-        const filtered = allProfessors.filter((p) => normalizeRmpName(p?.name || p?.professor || '').includes(qNorm));
+        let filtered = allProfessors.filter((p) => normalizeRmpName(p?.name || p?.professor || '').includes(qNorm));
+        if (activeDepartment && activeDepartment !== 'All') {
+          filtered = filtered.filter(p => normalizeDept(p.department || p.dept || '') === activeDepartment);
+        }
         setResults(filtered);
       } else {
         // fallback: fetch full list then filter
@@ -137,6 +170,31 @@ export default function Professors({ initialQuery = '' }) {
       }
     };
   }, [query, allProfessors]);
+
+  // Recompute results when activeDepartment changes (or when full list or query change)
+  useEffect(() => {
+    if (!allProfessors) return;
+    //trims the white space from the query and normalizes
+    //it to make comparison easier and more consistent
+    const q = query.trim();
+    const qNorm = normalizeRmpName(q || '');
+
+    let out = null;
+
+    if (!qNorm) {
+      out = allProfessors;
+    } else {
+      out = allProfessors.filter((p) => normalizeRmpName(p?.name || p?.professor || '').includes(qNorm));
+    }
+
+    //checks if there is a department that the user wants to filter by
+    if (activeDepartment && activeDepartment !== 'All') {
+      out = out.filter(p => normalizeDept(p.department || p.dept || '') === activeDepartment);
+    }
+
+    //spits out the results
+    setResults(out);
+  }, [activeDepartment, allProfessors, query]);
 
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [closeHover, setCloseHover] = useState(false);
@@ -192,6 +250,34 @@ export default function Professors({ initialQuery = '' }) {
             </div>
           </div>
         </div>
+      </div>
+
+//I had Ai build a lot of this styling, and the rest I built based off of what
+//was done in the status sheet tab
+      {/* Department tabs */}
+      <div style={{ padding: '0.5rem 1.5rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+        {['All', ...departments.map(d => d.name)].map((cat) => {
+          const count = cat === 'All' ? (allProfessors ? allProfessors.length : 0) : (departments.find(x => x.name === cat)?.count || 0);
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveDepartment(cat)}
+              style={{
+                padding: '0.35rem 0.6rem',
+                borderRadius: '999px',
+                border: activeDepartment === cat ? '1px solid var(--primary-color)' : '1px solid var(--border-subtle)',
+                background: activeDepartment === cat ? 'var(--primary-color)' : 'var(--bg-panel)',
+                color: activeDepartment === cat ? '#fff' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                display: 'flex',
+                gap: '0.4rem',
+                alignItems: 'center'
+              }}
+            >
+              {cat} <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1 }}>
