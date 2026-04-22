@@ -302,6 +302,33 @@ function AppContent() {
     }
   };
 
+  const handleSendToAdvisor = async () => {
+    try {
+      showNotification('Generating PDF...', 'info');
+
+      const blob = await pdf(
+        <SchedulePDF schedule={candidateSchedule} />
+      ).toBlob();
+
+      const formData = new FormData();
+      formData.append('file', blob, 'schedule.pdf');
+      formData.append('username', loggedInUser?.name || 'Guest');
+      formData.append('semester', selectedSemester);
+      formData.append('year', selectedYear);
+
+      const res = await fetch(`${BASE_URL}/sendScheduleToAdvisor`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('Failed to send schedule');
+
+      showNotification('Schedule sent to advisor!', 'success');
+    } catch (err) {
+      showNotification(`Error: ${err.message}`, 'error');
+    }
+  };
+
   const handleRemoveCourse = async (courseToRemove) => {
     try {
       await api.removeCourseFromSchedule(candidateSchedule, courseToRemove, selectedSemester, selectedYear, loggedInUser?.name);
@@ -657,9 +684,11 @@ function AppContent() {
       </div>
 
       <div style={rightPanelStyle}>
-        <PDFDownloadLink
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+          <PDFDownloadLink
             document={<SchedulePDF schedule={candidateSchedule} />}
             fileName="schedule.pdf"
+            style={{ flex: 1 }}
           >
             {({ loading }) => (
               <button
@@ -672,14 +701,31 @@ function AppContent() {
                   cursor: 'pointer',
                   fontSize: '0.9rem',
                   fontWeight: 500,
-                  marginBottom: '1rem',
                   width: '100%',
                 }}
               >
-                {loading ? 'Generating PDF...' : 'Export Schedule PDF'}
+                {loading ? 'Generating PDF...' : 'Export PDF'}
               </button>
             )}
-        </PDFDownloadLink>
+          </PDFDownloadLink>
+
+          <button
+            onClick={handleSendToAdvisor}
+            style={{
+              padding: '0.6rem 1rem',
+              background: '#2E7D32',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              flex: 1,
+            }}
+          >
+            Send to Advisor
+          </button>
+        </div>
         {/* Top-Right: Candidate Schedule */}
         <CandidateSchedule
           schedule={candidateSchedule}
