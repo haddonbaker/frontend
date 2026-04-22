@@ -3,7 +3,7 @@ import { Search, Loader2 } from 'lucide-react';
 import * as api from '../apiService';
 
 //The styling here was done with help from AI.
-//The rest was written without help.
+//The rest was written mostly without copy paste ger
 //This is just a personal note to document my AI usage
 
 // Renders partially-filled stars via CSS clip overlay for a 0–5 rating with color coding
@@ -172,10 +172,11 @@ export default function Professors({ initialQuery = '' }) {
   }, [query, allProfessors]);
 
   // Recompute results when activeDepartment changes (or when full list or query change)
+  // -A
   useEffect(() => {
     if (!allProfessors) return;
     //trims the white space from the query and normalizes
-    //it to make comparison easier and more consistent
+    //it to make comparison easier and more consistent     -A
     const q = query.trim();
     const qNorm = normalizeRmpName(q || '');
 
@@ -187,12 +188,12 @@ export default function Professors({ initialQuery = '' }) {
       out = allProfessors.filter((p) => normalizeRmpName(p?.name || p?.professor || '').includes(qNorm));
     }
 
-    //checks if there is a department that the user wants to filter by
+    //checks if there is a department that the user wants to filter by  -A
     if (activeDepartment && activeDepartment !== 'All') {
       out = out.filter(p => normalizeDept(p.department || p.dept || '') === activeDepartment);
     }
 
-    //spits out the results
+    //spits out the results -A
     setResults(out);
   }, [activeDepartment, allProfessors, query]);
 
@@ -252,9 +253,13 @@ export default function Professors({ initialQuery = '' }) {
         </div>
       </div>
 
-//I had Ai build a lot of this styling, and the rest I built based off of what
-//was done in the status sheet tab
-      {/* Department tabs */}
+
+      {/* Department tabs
+          //I had Ai build a lot of this styling, and the rest I built based off of what
+          //was done in the status sheet tab
+          // -A
+
+          */}
       <div style={{ padding: '0.5rem 1.5rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
         {['All', ...departments.map(d => d.name)].map((cat) => {
           const count = cat === 'All' ? (allProfessors ? allProfessors.length : 0) : (departments.find(x => x.name === cat)?.count || 0);
