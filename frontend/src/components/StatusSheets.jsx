@@ -70,6 +70,14 @@ export default function StatusSheets({ selectedSheet = '' }) {
               </button>
             )}
           </div>
+          <a
+            href="https://www.gcc.edu/Portals/0/2025-26-Catalog.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={styles.catalogLink}
+          >
+            Course Catalog
+          </a>
         </div>
 
         <div style={styles.tabs}>
