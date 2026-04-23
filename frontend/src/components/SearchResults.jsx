@@ -308,14 +308,6 @@ function SearchResults({
               >
                 Add
               </button>
-
-            </div>
-              onMouseEnter={(e) => e.target.style.background = '#1565C0'}
-              onMouseLeave={(e) => e.target.style.background = '#1976D2'}
-            >
-              Add
-            </button>
-            </div>
           </div>
         ))}
       </div>
