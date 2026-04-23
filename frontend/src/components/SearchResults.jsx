@@ -7,7 +7,16 @@ import React, { useState } from 'react';
 import { Info, Loader2 } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
 
-function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed = false, isLoading = false, onClearResults = () => {}, onSearchProfessor }) {
+function SearchResults({
+  results = [],
+  onAddCourse = () => {},
+  onToggleFavorite = () => {},
+  favorites = [],
+  searchPerformed = false,
+  isLoading = false,
+  onClearResults = () => {},
+  onSearchProfessor
+}) {
   const [viewCourse, setViewCourse] = useState(null);
 
   const panelStyle = {
@@ -265,22 +274,41 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
               </div>
             </div>
             
-            <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
-              <button 
-                style={infoButtonStyle} 
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+
+              {/* Info button */}
+              <button
+                style={infoButtonStyle}
                 onClick={() => setViewCourse(course)}
                 title="View Details"
               >
                 <Info size={18} />
               </button>
-            <button
-              style={addButtonStyle}
-              onClick={() => onAddCourse(course)}
-              onMouseEnter={(e) => e.target.style.background = '#1565C0'}
-              onMouseLeave={(e) => e.target.style.background = '#1976D2'}
-            >
-              Add
-            </button>
+
+              {/* Favorite button */}
+              <button
+                onClick={() => onToggleFavorite(course)}
+                title="Toggle Favorite"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                }}
+              >
+                {favorites?.some(c => c.courseCode === course.courseCode) ? '⭐' : '☆'}
+              </button>
+
+              {/* Add button */}
+              <button
+                style={addButtonStyle}
+                onClick={() => onAddCourse(course)}
+                onMouseEnter={(e) => (e.target.style.background = '#1565C0')}
+                onMouseLeave={(e) => (e.target.style.background = '#1976D2')}
+              >
+                Add
+              </button>
+
             </div>
           </div>
         ))}
@@ -289,5 +317,7 @@ function SearchResults({ results = [], onAddCourse = () => {}, searchPerformed =
     </div>
   );
 }
+
+
 
 export default SearchResults;
