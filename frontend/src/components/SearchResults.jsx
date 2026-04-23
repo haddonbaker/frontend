@@ -274,7 +274,7 @@ function SearchResults({
               </div>
             </div>
             
-            <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
 
               {/* Info button */}
               <button
@@ -285,7 +285,7 @@ function SearchResults({
                 <Info size={18} />
               </button>
 
-              {/* ⭐ Favorite button */}
+              {/* Favorite button */}
               <button
                 onClick={() => onToggleFavorite(course)}
                 title="Toggle Favorite"
@@ -303,11 +303,13 @@ function SearchResults({
               <button
                 style={addButtonStyle}
                 onClick={() => onAddCourse(course)}
-                onMouseEnter={(e) => e.target.style.background = '#1565C0'}
-                onMouseLeave={(e) => e.target.style.background = '#1976D2'}
+                onMouseEnter={(e) => (e.target.style.background = '#1565C0')}
+                onMouseLeave={(e) => (e.target.style.background = '#1976D2')}
               >
                 Add
               </button>
+
+            </div>
           </div>
         ))}
       </div>
