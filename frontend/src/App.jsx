@@ -44,6 +44,7 @@ function AppContent() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
+  const [favorites, setFavorites] = useState([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [conflictData, setConflictData] = useState(null);
@@ -316,6 +317,18 @@ function AppContent() {
     } catch (err) {
       setConflictData({ course, error: err.message });
     }
+  };
+
+  const handleToggleFavorite = (course) => {
+    setFavorites((prev) => {
+      const exists = prev.some(c => c.courseCode === course.courseCode);
+
+      if (exists) {
+        return prev.filter(c => c.courseCode !== course.courseCode);
+      } else {
+        return [...prev, course];
+      }
+    });
   };
 
   const handleSendToAdvisor = async () => {
@@ -691,6 +704,8 @@ function AppContent() {
           <SearchResults
             results={searchResults}
             onAddCourse={handleAddCourse}
+            onToggleFavorite={handleToggleFavorite}
+            favorites={favorites}
             searchPerformed={searchPerformed}
             isLoading={isSearchLoading}
             onClearResults={handleClearResults}
