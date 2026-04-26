@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, ChevronDown } from 'lucide-react';
 import * as api from '../apiService';
 
 //The styling here was done with help from AI.
@@ -47,30 +47,35 @@ export default function Professors({ initialQuery = '' }) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [error, setError] = useState(null);
-  const [activeDepartment, setActiveDepartment] = useState('All');
+  const [activeDepartments, setActiveDepartments] = useState([]);
+  const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
+  const [deptSearch, setDeptSearch] = useState('');
+  const deptRef = useRef(null);
 
-  const normalizeDept = (d) => {
-    if (!d) return '';
-    return String(d).trim();
-  };
+  // Case-insensitive key for grouping — collapses whitespace variants too
+  const normalizeDeptKey = (d) => String(d || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
-    //This method should only be used when allProfessors changes to avoid being run a lot more
-    // than necesary
   const departments = useMemo(() => {
     if (!allProfessors) return [];
-    const counts = {};
-    //iterates through all professors
-    //and extracts the department associated with them
+    // Group by normalized key; track each raw form and its count to pick the best canonical
+    const groups = new Map(); // key -> Map<rawForm, count>
     allProfessors.forEach(p => {
-      const d = normalizeDept(p.department || p.dept || '');
-      //at the moment I don't want to fuss with things like
-      // & being the same as and as well as other stuff like that
-      if (!d) return;
-      //counts the number of times that department has been seen before
-      counts[d] = (counts[d] || 0) + 1;
+      const raw = String(p.department || p.dept || '').trim();
+      if (!raw) return;
+      const key = normalizeDeptKey(raw);
+      if (!groups.has(key)) groups.set(key, new Map());
+      const forms = groups.get(key);
+      forms.set(raw, (forms.get(raw) || 0) + 1);
     });
 
-    return Object.keys(counts).sort((a,b) => a.localeCompare(b)).map(k => ({ name: k, count: counts[k] }));
+    return [...groups.entries()]
+      .map(([, forms]) => {
+        // Canonical = the form with the most occurrences; break ties by preferring Title Case (longer)
+        const canonical = [...forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length)[0][0];
+        const count = [...forms.values()].reduce((s, n) => s + n, 0);
+        return { canonical, count };
+      })
+      .sort((a, b) => a.canonical.localeCompare(b.canonical));
   }, [allProfessors]);
 
   // Normalize like ProfessorDB.normalizeRmpName: trim -> toLowerCase
@@ -109,9 +114,8 @@ export default function Professors({ initialQuery = '' }) {
           return n.includes(qNorm);
         });
       }
-  //checks to see if there is a department that the user wants to filter by
-      if (activeDepartment && activeDepartment !== 'All') {
-        out = out.filter(p => normalizeDept(p.department || p.dept || '') === activeDepartment);
+      if (activeDepartments.length > 0) {
+        out = out.filter(p => activeDepartments.some(d => normalizeDeptKey(p.department || p.dept || '') === normalizeDeptKey(d)));
       }
       setResults(out);
     } catch (err) {
@@ -121,11 +125,6 @@ export default function Professors({ initialQuery = '' }) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSearch = async () => {
-    const q = query.trim();
-    await fetchProfessors(q);
   };
 
   // Load all professors on mount (using initialQuery if provided)
@@ -139,26 +138,24 @@ export default function Professors({ initialQuery = '' }) {
     const q = query.trim();
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     searchDebounceRef.current = setTimeout(() => {
-      // if empty query, restore full list (cached or fetch)
+      const applyDeptFilter = (list) => activeDepartments.length > 0
+        ? list.filter(p => activeDepartments.some(d => normalizeDeptKey(p.department || p.dept || '') === normalizeDeptKey(d)))
+        : list;
+
       if (q === '') {
         if (allProfessors) {
-          setResults(allProfessors);
+          setResults(applyDeptFilter(allProfessors));
         } else {
           fetchProfessors('');
         }
         return;
       }
 
-      // If we have cached list, filter locally using normalizeRmpName
       if (allProfessors) {
         const qNorm = normalizeRmpName(q);
-        let filtered = allProfessors.filter((p) => normalizeRmpName(p?.name || p?.professor || '').includes(qNorm));
-        if (activeDepartment && activeDepartment !== 'All') {
-          filtered = filtered.filter(p => normalizeDept(p.department || p.dept || '') === activeDepartment);
-        }
-        setResults(filtered);
+        const filtered = allProfessors.filter((p) => normalizeRmpName(p?.name || p?.professor || '').includes(qNorm));
+        setResults(applyDeptFilter(filtered));
       } else {
-        // fallback: fetch full list then filter
         fetchProfessors(q);
       }
     }, 300);
@@ -188,21 +185,15 @@ export default function Professors({ initialQuery = '' }) {
       out = allProfessors.filter((p) => normalizeRmpName(p?.name || p?.professor || '').includes(qNorm));
     }
 
-    //checks if there is a department that the user wants to filter by  -A
-    if (activeDepartment && activeDepartment !== 'All') {
-      out = out.filter(p => normalizeDept(p.department || p.dept || '') === activeDepartment);
+    if (activeDepartments.length > 0) {
+      out = out.filter(p => activeDepartments.some(d => normalizeDeptKey(p.department || p.dept || '') === normalizeDeptKey(d)));
     }
 
-    //spits out the results -A
     setResults(out);
-  }, [activeDepartment, allProfessors, query]);
+  }, [activeDepartments, allProfessors, query]);
 
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [closeHover, setCloseHover] = useState(false);
-
-  const onKeyDown = (e) => {
-    if (e.key === 'Enter') handleSearch();
-  };
 
   // Close modal on ESC
   useEffect(() => {
@@ -216,73 +207,151 @@ export default function Professors({ initialQuery = '' }) {
     if (!selectedProfessor) setCloseHover(false);
   }, [selectedProfessor]);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (deptDropdownOpen && deptRef.current && !deptRef.current.contains(e.target)) {
+        setDeptDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [deptDropdownOpen]);
+
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '1rem 1.5rem', background: 'var(--bg-page)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <h2 style={{ margin: 0 }}>Professors</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '0 1 360px' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', padding: '0.35rem 0.6rem', borderRadius: '8px', flex: 1 }}>
               <Search size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={onKeyDown}
                 placeholder="Search professors by name"
                 style={{ flex: 1, marginLeft: '0.5rem', border: 'none', outline: 'none', background: 'transparent', color: 'var(--text-title)' }}
               />
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {query.trim() !== '' && (
               <button
-                onClick={handleSearch}
-                style={{ padding: '0.45rem 0.8rem', borderRadius: '8px', border: 'none', background: query.trim() === '' ? 'var(--border-subtle)' : 'var(--primary-color)', color: query.trim() === '' ? 'var(--text-secondary)' : 'white', cursor: 'pointer' }}
+                onClick={() => { setQuery(''); fetchProfessors(''); }}
+                style={{ padding: '0.35rem 0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}
               >
-                {query.trim() === '' ? 'Refresh' : 'Search'}
+                Clear
               </button>
-
-              {query.trim() !== '' && (
-                <button
-                  onClick={() => { setQuery(''); fetchProfessors(''); }}
-                  style={{ padding: '0.35rem 0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>
 
 
-      {/* Department tabs
-          //I had Ai build a lot of this styling, and the rest I built based off of what
-          //was done in the status sheet tab
-          // -A
-
-          */}
-      <div style={{ padding: '0.5rem 1.5rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-        {['All', ...departments.map(d => d.name)].map((cat) => {
-          const count = cat === 'All' ? (allProfessors ? allProfessors.length : 0) : (departments.find(x => x.name === cat)?.count || 0);
-          return (
-            <button
-              key={cat}
-              onClick={() => setActiveDepartment(cat)}
-              style={{
-                padding: '0.35rem 0.6rem',
-                borderRadius: '999px',
-                border: activeDepartment === cat ? '1px solid var(--primary-color)' : '1px solid var(--border-subtle)',
-                background: activeDepartment === cat ? 'var(--primary-color)' : 'var(--bg-panel)',
-                color: activeDepartment === cat ? '#fff' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                gap: '0.4rem',
-                alignItems: 'center'
-              }}
-            >
-              {cat} <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{count}</span>
-            </button>
-          );
-        })}
+      {/* Department filter */}
+      <div style={{ padding: '0.5rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: '1px solid var(--border-subtle)' }}>
+        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500, whiteSpace: 'nowrap' }}>Department</span>
+        <div ref={deptRef} style={{ position: 'relative' }}>
+          <button
+            onClick={() => setDeptDropdownOpen(o => !o)}
+            style={{
+              padding: '0.6rem',
+              borderRadius: '6px',
+              border: `2px solid ${deptDropdownOpen ? 'var(--primary-color)' : 'var(--border-color)'}`,
+              fontSize: '0.875rem',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '0.5rem',
+              background: 'var(--bg-panel)',
+              color: 'var(--text-primary)',
+              minWidth: '200px',
+              transition: 'border-color 0.2s',
+            }}
+          >
+            <span>
+              {activeDepartments.length === 0
+                ? 'All Departments'
+                : activeDepartments.length === 1
+                ? activeDepartments[0]
+                : `${activeDepartments.length} selected`}
+            </span>
+            <ChevronDown size={16} style={{ transform: deptDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
+          </button>
+          {deptDropdownOpen && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              marginTop: '0.25rem',
+              background: 'var(--bg-panel)',
+              border: '2px solid var(--primary-color)',
+              borderRadius: '6px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              zIndex: 20,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.25rem',
+              padding: '0.5rem',
+              maxHeight: '220px',
+              overflowY: 'auto',
+            }}>
+              <div style={{ position: 'sticky', top: '-0.5rem', background: 'var(--bg-panel)', zIndex: 5, paddingBottom: '0.25rem', marginTop: '-0.25rem' }}>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={deptSearch}
+                  onChange={(e) => setDeptSearch(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: '100%',
+                    padding: '0.4rem',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '4px',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    background: 'var(--bg-panel)',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+              </div>
+              {departments
+                .filter(d => d.canonical.toLowerCase().includes(deptSearch.toLowerCase()))
+                .map(d => (
+                  <label key={d.canonical} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-primary)', cursor: 'pointer', padding: '0.4rem 0.5rem', borderRadius: '4px' }}>
+                    <input
+                      type="checkbox"
+                      checked={activeDepartments.includes(d.canonical)}
+                      onChange={() => setActiveDepartments(prev =>
+                        prev.includes(d.canonical)
+                          ? prev.filter(x => x !== d.canonical)
+                          : [...prev, d.canonical]
+                      )}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    {d.canonical} <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>({d.count})</span>
+                  </label>
+                ))}
+            </div>
+          )}
+        </div>
+        {activeDepartments.length > 0 && (
+          <button
+            onClick={() => setActiveDepartments([])}
+            style={{
+              padding: '0.3rem 0.6rem',
+              borderRadius: '6px',
+              border: '1px solid var(--border-color)',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+            }}
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1 }}>

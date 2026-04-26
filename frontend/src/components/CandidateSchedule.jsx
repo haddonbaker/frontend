@@ -201,8 +201,8 @@ function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => { }
         <button
           onClick={openModal}
           style={buttonStyle}
-          onMouseEnter={(e) => (e.target.style.background = '#1565C0')}
-          onMouseLeave={(e) => (e.target.style.background = '#1976D2')}
+          onMouseEnter={(e) => (e.target.style.background = 'var(--primary-dark)')}
+          onMouseLeave={(e) => (e.target.style.background = 'var(--primary-color)')}
         >
           View Schedule
         </button>
@@ -211,10 +211,10 @@ function CandidateSchedule({ schedule = [], username, onRemoveCourse = () => { }
           disabled={isScheduleEmpty}
           style={isScheduleEmpty ? disabledButtonStyle : secondaryButtonStyle}
           onMouseEnter={(e) => {
-            if (!isScheduleEmpty) e.target.style.background = '#EBF5FF';
+            if (!isScheduleEmpty) e.target.style.background = 'var(--bg-active)';
           }}
           onMouseLeave={(e) => {
-            if (!isScheduleEmpty) e.target.style.background = '#FFFFFF';
+            if (!isScheduleEmpty) e.target.style.background = 'var(--bg-panel)';
           }}
         >
           Save Schedule
