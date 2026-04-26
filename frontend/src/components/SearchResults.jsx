@@ -6,12 +6,14 @@
 import React, { useState } from 'react';
 import { Info, Loader2 } from 'lucide-react';
 import CourseDetailsModal from './CourseDetailsModal';
+import { formatMeetingTimes, courseKey } from '../utils/courseUtils';
 
 function SearchResults({
   results = [],
   onAddCourse = () => {},
   onToggleFavorite = () => {},
   favorites = [],
+  isLoggedIn = false,
   searchPerformed = false,
   isLoading = false,
   onClearResults = () => {},
@@ -86,7 +88,7 @@ function SearchResults({
   const statusStyle = (isOpen) => ({
     fontSize: '0.8rem',
     fontWeight: '600',
-    color: isOpen ? '#059669' : '#DC2626',
+    color: isOpen ? 'var(--success-text)' : 'var(--error-text)',
   });
 
   const addButtonStyle = {
@@ -114,8 +116,8 @@ function SearchResults({
 
   const clearButtonStyle = {
     background: 'transparent',
-    border: '1px solid #EF5350',
-    color: '#EF5350',
+    border: '1px solid var(--danger-color)',
+    color: 'var(--danger-color)',
     padding: '0.4rem 0.8rem',
     borderRadius: '6px',
     fontSize: '0.85rem',
@@ -132,7 +134,7 @@ function SearchResults({
 
   const noResultsStyle = {
     ...emptyStateStyle,
-    color: '#DC2626',
+    color: 'var(--error-text)',
   };
 
   const loadingContainerStyle = {
@@ -145,7 +147,6 @@ function SearchResults({
     color: 'var(--text-secondary)',
   };
 
-  // UX for search loading state - shows a spinner and message while waiting for results
   if (isLoading) {
     return (
       <div style={panelStyle}>
@@ -162,67 +163,6 @@ function SearchResults({
       </div>
     );
   }
-
-  // Helper function to format meeting times into a user-friendly string
-  const formatTime = (hour, minute) => {
-    if (hour == null || minute == null) return '';
-    const h = parseInt(hour, 10);
-    const m = parseInt(minute, 10);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const displayHour = h % 12 || 12;
-    const displayMinutes = m < 10 ? `0${m}` : m;
-    return `${displayHour}:${displayMinutes} ${ampm}`;
-  };
-
-  // Helper function to format meeting times into a user-friendly string, grouping by time ranges and sorting by days of the week
-  const formatMeetingTimes = (times) => {
-    if (!times || times.length === 0) return 'TBA';
-
-    // Consistent day mapping and order
-    const dayMap = { MONDAY: 'M', TUESDAY: 'T', WEDNESDAY: 'W', THURSDAY: 'R', FRIDAY: 'F', SATURDAY: 'S', SUNDAY: 'U' };
-    const dayOrder = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-
-    const timeGroups = new Map();
-
-    times.forEach(time => {
-      const startTimeInMinutes = time.hour * 60 + time.minute;
-      // Use minutesLong for end time calculation, with a fallback for safety
-      const endTimeInMinutes = startTimeInMinutes + (time.minutesLong || 0); 
-      const endHour = Math.floor(endTimeInMinutes / 60) % 24;
-      const endMinute = endTimeInMinutes % 60;
-      const timeRangeStr = `${formatTime(time.hour, time.minute)} - ${formatTime(endHour, endMinute)}`;
-      
-      if (!timeGroups.has(timeRangeStr)) {
-        timeGroups.set(timeRangeStr, []);
-      }
-
-      // Normalize day to uppercase to handle inconsistencies like 'Monday' vs 'MONDAY'
-      const day = typeof time.day === 'string' ? time.day.toUpperCase() : '';
-      if (dayOrder.includes(day)) {
-        timeGroups.get(timeRangeStr).push(day);
-      }
-    });
-
-    // For each time group, sort the days chronologically.
-    for (const days of timeGroups.values()) {
-      days.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
-    }
-
-    // Sort the time groups themselves based on the first day they occur in the week.
-    const sortedEntries = [...timeGroups.entries()].sort((a, b) => {
-      // Make sure there are days to sort by
-      if (a[1].length === 0 || b[1].length === 0) return 0;
-      const firstDayA = dayOrder.indexOf(a[1][0]);
-      const firstDayB = dayOrder.indexOf(b[1][0]);
-      return firstDayA - firstDayB;
-    });
-
-    return sortedEntries.map(([timeRange, days]) => {
-      // Join the abbreviated days. If a day isn't in our map, it's an issue, so flag it.
-      const dayStr = days.map(d => dayMap[d] || '?').join('');
-      return `${dayStr} ${timeRange}`;
-    }).join(', ');
-  };
 
   if (results.length === 0) {// Show a different message if no search has been performed yet vs if a search was performed but returned no results
     const message = searchPerformed
@@ -246,12 +186,12 @@ function SearchResults({
           style={clearButtonStyle}
           onClick={onClearResults}
           onMouseEnter={(e) => {
-            e.target.style.background = '#EF5350';
+            e.target.style.background = 'var(--danger-color)';
             e.target.style.color = 'white';
           }}
           onMouseLeave={(e) => {
             e.target.style.background = 'transparent';
-            e.target.style.color = '#EF5350';
+            e.target.style.color = 'var(--danger-color)';
           }}
         >
           Clear Search
@@ -285,26 +225,30 @@ function SearchResults({
                 <Info size={18} />
               </button>
 
-              {/* Favorite button */}
-              <button
-                onClick={() => onToggleFavorite(course)}
-                title="Toggle Favorite"
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '1.2rem',
-                }}
-              >
-                {favorites?.some(c => c.courseCode === course.courseCode) ? '⭐' : '☆'}
-              </button>
+              {/* Favorite button — only for logged-in users */}
+              {isLoggedIn && (
+                <button
+                  onClick={() => onToggleFavorite(course)}
+                  title="Toggle Favorite"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '1.2rem',
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1,
+                  }}
+                >
+                  {favorites?.some(c => courseKey(c) === courseKey(course)) ? '⭐' : '☆'}
+                </button>
+              )}
 
               {/* Add button */}
               <button
                 style={addButtonStyle}
                 onClick={() => onAddCourse(course)}
-                onMouseEnter={(e) => (e.target.style.background = '#1565C0')}
-                onMouseLeave={(e) => (e.target.style.background = '#1976D2')}
+                onMouseEnter={(e) => (e.target.style.background = 'var(--primary-dark)')}
+                onMouseLeave={(e) => (e.target.style.background = 'var(--primary-color)')}
               >
                 Add
               </button>

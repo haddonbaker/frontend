@@ -15,6 +15,7 @@ import Professors from './components/Professors.jsx';
 import LoginPage from './components/LoginPage.jsx';
 import Profile from './components/Profile.jsx';
 import * as api from './apiService';
+import { courseKey } from './utils/courseUtils';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Moon, Sun, UserCircle } from 'lucide-react';
 import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
@@ -44,7 +45,16 @@ function AppContent() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [candidateSchedule, setCandidateSchedule] = useState({ courses: [], totalCredits: 0 });
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem('loggedInUser'));
+      if (!user?.name) return [];
+      const stored = localStorage.getItem(`course-favorites-${user.name}`);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [conflictData, setConflictData] = useState(null);
@@ -65,7 +75,21 @@ function AppContent() {
     try { return JSON.parse(localStorage.getItem('loggedInUser')); } catch { return null; }
   });
 
+  useEffect(() => {
+    if (loggedInUser?.name) {
+      localStorage.setItem(`course-favorites-${loggedInUser.name}`, JSON.stringify(favorites));
+    }
+  }, [favorites, loggedInUser?.name]);
+
   const handleLogin = async (user, goToProfile = false) => {
+    try {
+      const stored = localStorage.getItem(`course-favorites-${user.name}`);
+      setFavorites(stored ? JSON.parse(stored) : []);
+    } catch {
+      setFavorites([]);
+    }
+    setSearchResults([]);
+    setSearchPerformed(false);
     setLoggedInUser(user);
     setAuthMode('loggedIn');
     localStorage.setItem('authMode', 'loggedIn');
@@ -98,6 +122,9 @@ function AppContent() {
     }
     try { await api.logout(); } catch { /* session may already be gone */ }
     setCandidateSchedule({ courses: [], totalCredits: 0 });
+    setFavorites([]);
+    setSearchResults([]);
+    setSearchPerformed(false);
     setLoggedInUser(null);
     setAuthMode('login');
     localStorage.removeItem('authMode');
@@ -321,10 +348,9 @@ function AppContent() {
 
   const handleToggleFavorite = (course) => {
     setFavorites((prev) => {
-      const exists = prev.some(c => c.courseCode === course.courseCode);
-
+      const exists = prev.some(c => courseKey(c) === courseKey(course));
       if (exists) {
-        return prev.filter(c => c.courseCode !== course.courseCode);
+        return prev.filter(c => courseKey(c) !== courseKey(course));
       } else {
         return [...prev, course];
       }
@@ -525,7 +551,9 @@ function AppContent() {
       <button style={navTabStyle(activePage === 'search')} onClick={() => setPage('search')}>Course Search</button>
       <button style={navTabStyle(activePage === 'statusSheets')} onClick={() => setPage('statusSheets')}>Status Sheets</button>
       <button style={navTabStyle(activePage === 'prof')} onClick={() => setPage('prof')}>Professors</button>
-        <button style={navTabStyle(activePage === 'profile')} onClick={() => setPage('profile')}>Profile</button>
+        {authMode === 'loggedIn' && (
+          <button style={navTabStyle(activePage === 'profile')} onClick={() => setPage('profile')}>Profile</button>
+        )}
       <button
         onClick={toggleDark}
         title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -685,6 +713,8 @@ function AppContent() {
             onBack={() => setPage('search')}
             onSelectMajor={handleSelectMajor}
             onUpdateDisplayName={handleUpdateDisplayName}
+            favorites={favorites}
+            onToggleFavorite={handleToggleFavorite}
           />
         </div>
       </div>
@@ -706,6 +736,7 @@ function AppContent() {
             onAddCourse={handleAddCourse}
             onToggleFavorite={handleToggleFavorite}
             favorites={favorites}
+            isLoggedIn={authMode === 'loggedIn'}
             searchPerformed={searchPerformed}
             isLoading={isSearchLoading}
             onClearResults={handleClearResults}
@@ -725,7 +756,7 @@ function AppContent() {
               <button
                 style={{
                   padding: '0.6rem 1rem',
-                  background: '#1976D2',
+                  background: 'var(--primary-color)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
@@ -744,7 +775,7 @@ function AppContent() {
             onClick={handleSendToAdvisor}
             style={{
               padding: '0.6rem 1rem',
-              background: '#1976D2',
+              background: 'var(--primary-color)',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
