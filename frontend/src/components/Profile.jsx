@@ -8,6 +8,7 @@ import { allSheets } from '../sheetData';
 import { FileText, Download, Eye, ArrowLeft, X, Maximize2, Minimize2 } from 'lucide-react';
 import MajorSelectionModal from './MajorSelectionModal';
 import EditDisplayNameModal from './EditDisplayNameModal';
+import { formatMeetingTimes } from '../utils/courseUtils';
 
 const normalizeMajor = (value) => {
   return String(value || '')
@@ -26,7 +27,8 @@ const findMajorSheets = (major) => {
   });
 };
 
-export default function Profile({ user = {}, onBack = () => { }, onSelectMajor = () => { }, onUpdateDisplayName = () => { } }) {
+
+export default function Profile({ user = {}, onBack = () => { }, onSelectMajor = () => { }, onUpdateDisplayName = () => { }, favorites = [], onToggleFavorite = () => { } }) {
   const savedMajor = user.major?.trim() || 'Undeclared';
   const name = user.name || 'Guest';
   const displayName = user.displayName || name; // fallback to name if no display name
@@ -172,15 +174,48 @@ export default function Profile({ user = {}, onBack = () => { }, onSelectMajor =
           </div>
         )}
       </section>
-      <section>
+      <section style={styles.favoritesSection}>
         <div style={styles.sectionHeader}>
           <div>
-            <h2 style={styles.sectionTitle}>Add Completed Courses</h2>
+            <h2 style={styles.sectionTitle}>Favorite Courses</h2>
             <p style={styles.sectionDescription}>
-              Indicate courses you have previously taken here. Completed courses will not be shown in search results.
+              Courses you've starred in search results. Click ⭐ to remove a favorite.
             </p>
           </div>
         </div>
+
+        {favorites.length === 0 ? (
+          <div style={styles.emptyState}>
+            <p style={{ margin: 0 }}>No favorites yet. Star a course in search results to save it here.</p>
+          </div>
+        ) : (
+          <div style={styles.favoritesList}>
+            {favorites.map((course) => (
+              <div key={`${course.department}-${course.code}-${course.section}`} style={styles.favCourseCard}>
+                <div style={styles.favCourseInfo}>
+                  <div style={styles.favCourseTitle}>
+                    {course.department} {course.code}{course.section ? course.section : ''}
+                  </div>
+                  {course.name && <div style={styles.favCourseName}>{course.name}</div>}
+                  <div style={styles.favCourseMeta}>
+                    <span>{formatMeetingTimes(course.meetingTimes)}</span>
+                    <span>{course.credits} cr</span>
+                    <span style={{ color: course.openSeats > 0 ? 'var(--success-text)' : 'var(--error-text)', fontWeight: 600 }}>
+                      {course.openSeats > 0 ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onToggleFavorite(course)}
+                  title="Remove from favorites"
+                  style={styles.unfavoriteButton}
+                >
+                  ⭐
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* PDF Preview Modal */}
@@ -437,6 +472,62 @@ const styles = {
     background: 'var(--bg-panel)',
     color: 'var(--text-secondary)',
     fontSize: '0.95rem',
+  },
+  favoritesSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  },
+  favoritesList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.6rem',
+    maxHeight: '420px',
+    overflowY: 'auto',
+    paddingRight: '0.25rem',
+  },
+  favCourseCard: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '0.75rem',
+    padding: '0.75rem 1rem',
+    border: '1px solid var(--border-color)',
+    borderRadius: '8px',
+    background: 'var(--bg-card)',
+  },
+  favCourseInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  favCourseTitle: {
+    fontSize: '1rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    margin: 0,
+  },
+  favCourseName: {
+    fontSize: '0.85rem',
+    color: 'var(--text-secondary)',
+    marginTop: '0.15rem',
+  },
+  favCourseMeta: {
+    display: 'flex',
+    gap: '1rem',
+    fontSize: '0.82rem',
+    color: 'var(--text-secondary)',
+    marginTop: '0.3rem',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  unfavoriteButton: {
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '1.2rem',
+    lineHeight: 1,
+    padding: '4px',
+    flexShrink: 0,
   },
   saveRow: {
     display: 'flex',
