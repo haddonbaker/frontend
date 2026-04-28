@@ -61,6 +61,8 @@ function AppContent() {
   const [alternatives, setAlternatives] = useState([]);
   const [showAlternativesModal, setShowAlternativesModal] = useState(false);
   const [alternativeSource, setAlternativeSource] = useState(null);
+  const [showAdvisorModal, setShowAdvisorModal] = useState(false);
+  const [advisorEmail, setAdvisorEmail] = useState('');
 
   // Term selection: semester enum name + year integer
   const [selectedSemester, setSelectedSemester] = useState('Fall');
@@ -358,6 +360,11 @@ function AppContent() {
   };
 
   const handleSendToAdvisor = async () => {
+    if (!advisorEmail) {
+      showNotification('Please enter an advisor email', 'error');
+      return;
+    }
+
     try {
       showNotification('Generating PDF...', 'info');
 
@@ -370,6 +377,7 @@ function AppContent() {
       formData.append('username', loggedInUser?.name || 'Guest');
       formData.append('semester', selectedSemester);
       formData.append('year', selectedYear);
+      formData.append('advisorEmail', advisorEmail);
 
       const res = await fetch(`${BASE_URL}/sendScheduleToAdvisor`, {
         method: 'POST',
@@ -379,6 +387,10 @@ function AppContent() {
       if (!res.ok) throw new Error('Failed to send schedule');
 
       showNotification('Schedule sent to advisor!', 'success');
+
+      setAdvisorEmail('');
+      setShowAdvisorModal(false);
+
     } catch (err) {
       showNotification(`Error: ${err.message}`, 'error');
     }
@@ -772,7 +784,7 @@ function AppContent() {
           </PDFDownloadLink>
 
           <button
-            onClick={handleSendToAdvisor}
+            onClick={() => setShowAdvisorModal(true)}
             style={{
               padding: '0.6rem 1rem',
               background: 'var(--primary-color)',
@@ -844,6 +856,81 @@ function AppContent() {
           onSearchProfessor={navigateToProfessors}
         />
       )}
+  {showAdvisorModal && (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      background: 'rgba(0,0,0,0.4)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
+      <div style={{
+        background: 'var(--bg-panel)',
+        padding: '1.5rem',
+        borderRadius: '12px',
+        width: '320px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+
+        <h3 style={{ margin: 0 }}>Send Schedule to Advisor</h3>
+
+        <input
+          type="email"
+          placeholder="Advisor email"
+          value={advisorEmail}
+          onChange={(e) => setAdvisorEmail(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSendToAdvisor()}
+          autoFocus
+          style={{
+            padding: '0.6rem',
+            borderRadius: '8px',
+            border: '1px solid var(--border-color)',
+            fontSize: '0.9rem'
+          }}
+        />
+
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={handleSendToAdvisor}
+            style={{
+              flex: 1,
+              padding: '0.6rem',
+              background: 'var(--primary-color)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Send
+          </button>
+
+          <button
+            onClick={() => setShowAdvisorModal(false)}
+            style={{
+              flex: 1,
+              padding: '0.6rem',
+              background: 'transparent',
+              border: '1px solid var(--border-color)',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+
+      </div>
+    </div>
+  )}
     </div>
     </div>
   );
