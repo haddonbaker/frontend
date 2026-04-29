@@ -893,7 +893,8 @@ function AppContent() {
             padding: '0.6rem',
             borderRadius: '8px',
             border: '1px solid var(--border-color)',
-            fontSize: '0.9rem'
+            fontSize: '0.9rem',
+            fontFamily: 'inherit'
           }}
         />
 
