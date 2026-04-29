@@ -922,6 +922,8 @@ function AppContent() {
               border: '1px solid var(--border-color)',
               borderRadius: '8px',
               cursor: 'pointer'
+              color: 'var(--text-primary)',
+              fontWeight: 500
             }}
           >
             Cancel
