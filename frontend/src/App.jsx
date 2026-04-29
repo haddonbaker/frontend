@@ -921,7 +921,7 @@ function AppContent() {
               background: 'transparent',
               border: '1px solid var(--border-color)',
               borderRadius: '8px',
-              cursor: 'pointer'
+              cursor: 'pointer',
               color: 'var(--text-primary)',
               fontWeight: 500
             }}
